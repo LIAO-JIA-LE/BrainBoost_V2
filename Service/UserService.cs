@@ -200,15 +200,13 @@ namespace BrainBoost_V2.Service
         // 用account獲得資料
         public User GetDataByAccount(string account){
             string sql = $@"SELECT 
-                                u.*,
-                                ur.roleId
-                            FROM ""User"" u 
+                                u.*
+                            FROM [User] u 
                             JOIN UserRole ur
                             ON u.userId = ur.userId
-                            WHERE userAccount = '{account}'
-                            ";
+                            WHERE u.userAccount = @account";
             using (var conn = new SqlConnection(cnstr))
-            return conn.QueryFirstOrDefault<User>(sql);
+            return conn.QueryFirstOrDefault<User>(sql, new{ account });
         }
         #endregion
 

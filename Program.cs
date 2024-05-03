@@ -52,7 +52,7 @@ builder.Services
 //設定生命週期 (有使用到Configuration都要設定)
 builder.Host.ConfigureServices((hostContext,services)=>{
     services.AddScoped<UserService>();
-    // services.AddScoped<QuestionsDBService>();
+    services.AddScoped<QuestionService>();
     services.AddScoped<MailService>();
     services.AddScoped<RoomService>();
     // services.AddScoped<RaceRepository>();

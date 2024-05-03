@@ -15,6 +15,7 @@ namespace BrainBoost_V2.Models{
         //電子郵件
         public string userEmail {get;set;}
         //驗證碼
-        public string userAuthCode {get;set;}
+        public string? userAuthCode {get;set;}
+        public int roleId{get;set;}
     }
 }

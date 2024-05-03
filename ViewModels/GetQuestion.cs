@@ -9,7 +9,7 @@ namespace BrainBoost_V2.ViewModels
     public class GetQuestion
     {
         public Question questionData { get; set; } = new();
-        public Subject subjectData{get;set;}
+        public Subject subjectData{get;set;} = new();
         
         public List<string> options { get; set; }
 

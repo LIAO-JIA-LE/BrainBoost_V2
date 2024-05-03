@@ -4,10 +4,12 @@ using BrainBoost_V2.Parameter;
 using BrainBoost_V2.ViewModels;
 using BrainBoost_V2.Service;
 using NPOI.SS.Formula.Functions;
+using System.Data;
 
 namespace BrainBoost_V2.Controller
 {
     [Route("BrainBoost/[controller]")]
+    [ApiController]
     public class ImportController(QuestionService _questionService, UserService _userService) : ControllerBase
     {
         #region 呼叫函式
@@ -23,10 +25,10 @@ namespace BrainBoost_V2.Controller
         public IActionResult TrueOrFalse([FromQuery]int subjectId, [FromBody]TureorFalse question){
             GetQuestion getQuestion = new();
             getQuestion.tagData.tagContent = question.tagContent;
+            getQuestion.subjectData.subjectId = subjectId;
             // 題目敘述
             getQuestion.questionData = new Question(){
                 typeId = 1,
-                subjectId = subjectId,
                 questionLevel = question.questionLevel,
                 questionContent = question.questionContent
             };
@@ -40,7 +42,8 @@ namespace BrainBoost_V2.Controller
             try
             {
                 getQuestion.questionData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-                getQuestion.questionData.questionId =  QuestionService.InsertQuestion(getQuestion);
+                QuestionService.InsertQuestion(getQuestion);
+                getQuestion.answerData.questionId = getQuestion.questionData.questionId;
             }
             catch (Exception e)
             {
@@ -64,10 +67,10 @@ namespace BrainBoost_V2.Controller
         public IActionResult MultipleChoice([FromQuery]int subjectId, [FromBody]MultipleChoice question){
             GetQuestion getQuestion = new();
             getQuestion.tagData.tagContent = question.tagContent;
+            getQuestion.subjectData.subjectId = subjectId;
             // 題目敘述
             getQuestion.questionData = new Question(){
                 typeId = 2,
-                subjectId = subjectId,
                 questionLevel = question.questionLevel,
                 questionContent = question.questionContent
             };
@@ -89,7 +92,8 @@ namespace BrainBoost_V2.Controller
             try
             {
                 getQuestion.questionData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-                getQuestion.questionData.questionId =  QuestionService.InsertQuestion(getQuestion);
+                QuestionService.InsertQuestion(getQuestion);
+                getQuestion.answerData.questionId = getQuestion.questionData.questionId;
             }
             catch (Exception e)
             {
@@ -105,6 +109,60 @@ namespace BrainBoost_V2.Controller
             });
         }
 
+        #endregion
+
+        #region 是非題 檔案匯入
+        [HttpPost("[Action]")]
+        public IActionResult Excel_TrueOrFalse([FromQuery]int subjectId, IFormFile file){
+            // 檔案處理
+            DataTable dataTable = QuestionService.FileDataPrecess(file);
+            // 將dataTable資料匯入資料庫
+
+            if(dataTable != null){
+                foreach (DataRow dataRow in dataTable.Rows)
+                {
+                    GetQuestion getQuestion = new();
+                    getQuestion.tagData.tagContent = dataRow["Tag"].ToString();
+                    getQuestion.subjectData.subjectId = subjectId;
+                    // 題目敘述
+                    getQuestion.questionData = new Question(){
+                        typeId = 1,
+                        questionLevel = Convert.ToInt32(dataRow["Level"]),
+                        questionContent = dataRow["Question"].ToString()
+                    };
+
+                    // 題目答案
+                    getQuestion.answerData = new Answer(){
+                        answerContent = dataRow["Answer"].ToString(),
+                        parse = dataRow["Parse"].ToString()
+                    };
+
+                    try
+                    {
+                        int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                        QuestionService.InsertQuestion(getQuestion);
+                        getQuestion.answerData.questionId = getQuestion.questionData.questionId;
+                    }
+                    catch (Exception e)
+                    {
+                        return BadRequest(new Response(){
+                                status_code = Response.StatusCode,
+                                message = $"發生錯誤:  {e}"
+                            });
+                    }
+                    return Ok(new Response(){
+                        status_code = Response.StatusCode,
+                        message = "新增是非題成功",
+                        data = getQuestion
+                    });
+                    
+                }
+            }
+            return Ok(new Response(){
+                        status_code = Response.StatusCode,
+                        message = "檔案無資料",
+                    });
+        }
         #endregion
         
     }
