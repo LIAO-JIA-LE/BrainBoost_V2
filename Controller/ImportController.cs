@@ -164,6 +164,60 @@ namespace BrainBoost_V2.Controller
                     });
         }
         #endregion
+
+        #region 選擇題 檔案匯入
+        [HttpPost("[Action]")]
+        public IActionResult Excel_MultipleChoice([FromQuery]int subjectId, IFormFile file)
+        {
+            // 檔案處理
+            DataTable dataTable = QuestionService.FileDataPrecess(file);
+            // 將dataTable資料匯入資料庫
+            foreach (DataRow dataRow in dataTable.Rows)
+            {
+                GetQuestion getQuestion = new();
+                getQuestion.tagData.tagContent = dataRow["Tag"].ToString();
+                    getQuestion.subjectData.subjectId = subjectId;
+                // 題目敘述
+                getQuestion.questionData = new Question(){
+                    typeId = 2,
+                    questionLevel = Convert.ToInt32(dataRow["Level"]),
+                    questionContent = dataRow["Question"].ToString()
+                };
+
+                // 題目選項
+                getQuestion.options = new List<string>(){
+                    dataRow["OptionA"].ToString(),
+                    dataRow["OptionB"].ToString(),
+                    dataRow["OptionC"].ToString(),
+                    dataRow["OptionD"].ToString()
+                };
+
+                getQuestion.answerData = new Answer()
+                {
+                    answerContent = dataRow["Answer"].ToString(),
+                    parse = dataRow["Parse"].ToString()
+                };
+
+                try
+                {
+                    int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                    QuestionService.InsertQuestion(getQuestion);
+                    getQuestion.answerData.questionId = getQuestion.questionData.questionId;
+                }
+                catch (Exception e)
+                {
+                    return BadRequest(new Response(){
+                        status_code = Response.StatusCode,
+                        message = $"發生錯誤:  {e}"
+                    });
+                }
+            }
+            return Ok(new Response(){
+                status_code = Response.StatusCode,
+                message = "匯入選擇題成功"
+            });    
+        }
+        #endregion
         
     }
 }
