@@ -1,6 +1,7 @@
 using System.Data.SqlClient;
 using BrainBoost_V2.Parameter;
 using BrainBoost_V2.Models;
+using BrainBoost_V2.ViewModels;
 using Dapper;
 using System.Text;
 
@@ -72,10 +73,26 @@ namespace BrainBoost_V2.Service
         #endregion
 
         #region 顯示搶答室
+        //全部搶答室
         public List<Room> GetAllRoom(int userId){
             string sql = $@" SELECT	* FROM Room WHERE isDelete = 0 AND userId = @userId ORDER BY createTime DESC ";
             using (var conn = new SqlConnection(cnstr))
             return (List<Room>)conn.Query<Room>(sql, new{userId});
+        }
+        //單一搶答室
+        public Room GetRoom(int roomId,int userId){
+            string sql = $@" SELECT	* FROM Room WHERE roomId = @roomId AND isDelete = 0 AND userId = @userId";
+            using var conn = new SqlConnection(cnstr);
+            return conn.QueryFirstOrDefault<Room>(sql, new { roomId, userId });
+        }
+        #endregion
+        #region 修改搶答室資訊
+        public void UpdateRoom(RoomUpdate roomData){
+            // 新增搶答室資訊
+            string sql = $@"UPDATE Room SET roomName = @roomName, roomFunction = @roomFunction,
+                            timeLimit = @timeLimit WHERE roomId = @roomId ";
+            using var conn = new SqlConnection(cnstr);
+            conn.Execute(sql, new {roomData.roomName,roomData.roomFunction, roomData.timeLimit, roomData.roomId});
         }
         #endregion
     }

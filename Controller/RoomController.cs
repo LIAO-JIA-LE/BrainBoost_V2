@@ -19,15 +19,16 @@ namespace BrainBoost_V2.Controller
         // 時間限制(roomTimeLimit)預設為30秒
         [HttpPost]
         [Route("")]
-        public IActionResult InsertRoom([FromBody]InsertRoom raceData){
+        public IActionResult InsertRoom([FromBody]InsertRoom roomData){
             try{
-                raceData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-                var Response = raceData;
-                RoomService.InsertRoom(raceData);
+                roomData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                var Response = roomData;
+                int roomId = RoomService.InsertRoom(roomData);
+                Room room = RoomService.GetRoom(roomId,roomData.userId);
                 return Ok(new Response{
                     status_code = 200,
                     message = "新增成功",
-                    data = raceData
+                    data = room
                 });
                 
             }
@@ -42,6 +43,7 @@ namespace BrainBoost_V2.Controller
 
         #endregion
         #region 顯示搶答室
+        //全部搶答室
         [HttpGet]
         [Route("AllRoom")]
         public IActionResult GetAllRoom(){
@@ -69,6 +71,61 @@ namespace BrainBoost_V2.Controller
                         status_code = 400,
                         message = e.Message
                 });
+            }
+        }
+        //單一搶答室
+        [HttpGet]
+        [Route("")]
+        public IActionResult GetRoom([FromQuery]int roomId){
+            try
+            {
+                int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                var Response = RoomService.GetRoom(roomId, userId);
+                if(Response == null){
+                    return Ok(new Response{
+                        status_code = 200,
+                        message = "查無資料"
+                    });
+                }
+                else{
+                    return Ok(new Response{
+                        status_code = 200,
+                        message = "讀取成功",
+                        data = Response
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response{
+                        status_code = 400,
+                        message = e.Message
+                });
+            }
+        }
+        #endregion
+        #region 修改搶答室
+        // 修改 搶答室資訊
+        [HttpPut]
+        [Route("")]
+        public IActionResult UpdateRoom([FromBody]RoomUpdate raceData){
+            try
+            {
+                int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                RoomService.UpdateRoom(raceData);
+                var Response = RoomService.GetRoom(raceData.roomId, userId);
+                return Ok(new Response{
+                    status_code = 200,
+                    message = "修改成功",
+                    data = Response
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response{
+                        status_code = 400,
+                        message = e.Message
+                    });
             }
         }
         #endregion
