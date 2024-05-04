@@ -1,11 +1,12 @@
 using System.Data.SqlClient;
 using Dapper;
 using System.Text;
-using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System.Data;
 using BrainBoost_V2.ViewModels;
+using NPOI;
+using NPOI.HSSF.UserModel;
 
 namespace BrainBoost_V2.Service
 {
@@ -110,78 +111,71 @@ namespace BrainBoost_V2.Service
     
         #region 檔案匯入
         public DataTable FileDataPrecess(IFormFile file){
-            // 上傳的文件
             Stream stream = file.OpenReadStream();
-
-            // 儲存Excel的資料
             DataTable dataTable = new DataTable();
-
-            // 讀取or處理Excel文件
             IWorkbook wb;
-
-            // 工作表
             ISheet sheet;
-
-            // 標頭
             IRow headerRow;
-
-            // 欄數
             int cellCount;
-
             try
             {
-                // excel版本(.xlsx)
                 if (file.FileName.ToUpper().EndsWith("XLSX"))
                     wb = new XSSFWorkbook(stream);
-                // excel版本(.xls)
                 else
                     wb = new HSSFWorkbook(stream);
 
-                // 取第一個工作表
                 sheet = wb.GetSheetAt(0);
-
-                // 此工作表的第一列
                 headerRow = sheet.GetRow(0);
-
-                // 計算欄位數
                 cellCount = headerRow.LastCellNum;
 
-                // 讀取標題列，將抓到的值放進DataTable做完欄位名稱
                 for (int i = headerRow.FirstCellNum; i < cellCount; i++)
                     dataTable.Columns.Add(new DataColumn(headerRow.GetCell(i).StringCellValue));
 
-                int column = 1; //計算每一列讀到第幾個欄位
-
-                // 略過標題列，處理到最後一列
-                for (int i = (sheet.FirstRowNum + 1); i <= sheet.LastRowNum; i++)
+                int column = 1;
+                for (int i = sheet.FirstRowNum + 1; i <= sheet.LastRowNum; i++)
                 {
-                    // 取目前的列
                     IRow row = sheet.GetRow(i);
-
-                    // 若該列的第一個欄位無資料，break跳出
                     if (string.IsNullOrEmpty(row.Cells[0].ToString().Trim())) break;
-                    
-                    // 宣告DataRow
                     DataRow dataRow = dataTable.NewRow();
-
-                    // 宣告ICell，獲取單元格的資訊
                     ICell cell;
 
                     try
                     {
-                        // 依先前取得，依每一列的欄位數，逐一設定欄位內容
                         for (int j = row.FirstCellNum; j < cellCount; j++)
                         {
-                            // 計算每一列讀到第幾個欄位（For錯誤訊息）
                             column = j + 1;
-
-                            // 設定cell為目前第j欄位
                             cell = row.GetCell(j);
-
-                            // 若cell有值
                             if (cell != null)
                             {
-                                // 判斷資料格式
+                                List<string> imagesBase64 = new List<string>();
+
+                                if (sheet is XSSFSheet xssfSheet)
+                                {
+                                    var drawingPatriarch = sheet.CreateDrawingPatriarch();
+                                    var pictures = drawingPatriarch.GetShapes().OfType<XSSFPicture>();
+
+                                    if (pictures.Any())
+                                    {
+                                        var picture = pictures.First(); // 取第一張圖片
+                                        var pictureData = picture.PictureData;
+                                        byte[] picBytes = pictureData.Data;
+                                        dataTable.Rows.Add(Convert.ToBase64String(picBytes));
+                                    }
+                                    
+                                }
+                                else if(sheet is HSSFWorkbook hssfSheet){
+                                    var drawingPatriarch = sheet.CreateDrawingPatriarch();
+                                    var pictures = drawingPatriarch.GetShapes().OfType<HSSFPicture>();
+
+                                    if (pictures.Any())
+                                    {
+                                        var picture = pictures.First(); // 取第一張圖片
+                                        var pictureData = picture.PictureData;
+                                        byte[] picBytes = pictureData.Data;
+                                        dataTable.Rows.Add(Convert.ToBase64String(picBytes));
+                                    }
+                                }
+
                                 switch (cell.CellType)
                                 {
                                     // 字串
@@ -222,7 +216,6 @@ namespace BrainBoost_V2.Service
                                 }
                             }
                         }
-                        // DataTable加入dataRow
                         dataTable.Rows.Add(dataRow);
                     }
                     catch (Exception e)
@@ -230,9 +223,12 @@ namespace BrainBoost_V2.Service
                         //錯誤訊息
                         throw new Exception("第 " + i + "列，資料格式有誤:\r\r" + e.ToString());
                     }
+                    finally
+                    {
+                        stream.Close();
+                        stream.Dispose();
+                    }
                 }
-
-
             }
             finally
             {
