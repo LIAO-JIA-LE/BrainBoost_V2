@@ -3,6 +3,8 @@ using BrainBoost_V2.Service;
 using BrainBoost_V2.Parameter;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using BrainBoost_V2.ViewModels;
+using BrainBoost_V2.Services;
 
 namespace BrainBoost_V2.Controller
 {
@@ -46,22 +48,28 @@ namespace BrainBoost_V2.Controller
         //全部搶答室
         [HttpGet]
         [Route("AllRoom")]
-        public IActionResult GetAllRoom(){
+        public IActionResult GetAllRoom([FromQuery]string search,[FromQuery]int page = 1){
             try
             {
-                int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-                var Response = RoomService.GetAllRoom(userId);
-                if(Response == null){
+                AllRoomViewModel allRoomViewModel = new AllRoomViewModel
+                {
+                    userId = UserService.GetDataByAccount(User.Identity.Name).userId,
+                    forpaging = new Forpaging(page),
+                    search = search
+                };
+                allRoomViewModel.roomList = RoomService.GetAllRoom(allRoomViewModel.userId);
+                if (allRoomViewModel.roomList == null){
                     return Ok(new Response{
                         status_code = 200,
-                        message = "查無資料"
+                        message = "查無資料",
+                        data = allRoomViewModel
                     });
                 }
                 else{
                     return Ok(new Response{
                         status_code = 200,
                         message = "讀取成功",
-                        data = Response
+                        data = allRoomViewModel
                     });
                 }
             }

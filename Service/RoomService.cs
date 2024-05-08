@@ -4,6 +4,7 @@ using BrainBoost_V2.Models;
 using BrainBoost_V2.ViewModels;
 using Dapper;
 using System.Text;
+using BrainBoost_V2.Services;
 
 namespace BrainBoost_V2.Service
 {
@@ -74,11 +75,38 @@ namespace BrainBoost_V2.Service
 
         #region 顯示搶答室
         //全部搶答室
-        public List<Room> GetAllRoom(int userId){
-            string sql = $@" SELECT	* FROM Room WHERE isDelete = 0 AND userId = @userId ORDER BY createTime DESC ";
-            using (var conn = new SqlConnection(cnstr))
-            return (List<Room>)conn.Query<Room>(sql, new{userId});
+        public AllRoomViewModel GetAllRoom(AllRoomViewModel data){
+            if(string.IsNullOrEmpty(data.search)){
+                SetMaxPage(data.userId,data.forpaging);
+                data.roomList = GetRoomList(data.userId,data.forpaging);
+            }
+            else{
+                SetMaxPage(data.userId,data.forpaging,data.search);
+                data.roomList = GetRoomList(data.userId,data.forpaging,data.search);
+            }
+            return data;
         }
+        public void SetMaxPage(int userId,Forpaging forpaging){
+            string sql = $@"SELECT COUNT(*) FROM Room WHERE userId = @userId AND isDelete = 0";
+            using var conn = new SqlConnection(cnstr);
+            int row = conn.QueryFirst<int>(sql,new{userId});
+            forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
+            forpaging.SetRightPage();
+        }
+        public void SetMaxPage(int userId,Forpaging forpaging,string search){
+            string sql = $@"SELECT COUNT(*) FROM Room WHERE userId = @userId AND isDelete = 0 AND roomName LIKE '%@search%' OR className LIKE '%@search%'";
+            using var conn = new SqlConnection(cnstr);
+            int row = conn.QueryFirst<int>(sql,new{userId});
+            forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
+            forpaging.SetRightPage();
+        }
+        public List<Room> GetRoomList(int userId,Forpaging forpaging){
+            
+        }
+        public List<Room> GetRoomList(int userId,Forpaging forpaging,string search){
+
+        }
+        //string sql = $@" SELECT	* FROM Room WHERE isDelete = 0 AND userId = @userId ORDER BY createTime DESC ";
         //單一搶答室
         public Room GetRoom(int roomId,int userId){
             string sql = $@" SELECT	* FROM Room WHERE roomId = @roomId AND isDelete = 0 AND userId = @userId";
