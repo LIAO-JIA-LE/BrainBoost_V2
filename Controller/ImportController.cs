@@ -139,7 +139,7 @@ namespace BrainBoost_V2.Controller
 
                     try
                     {
-                        int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                        getQuestion.questionData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
                         QuestionService.InsertQuestion(getQuestion);
                         getQuestion.answerData.questionId = getQuestion.questionData.questionId;
                     }

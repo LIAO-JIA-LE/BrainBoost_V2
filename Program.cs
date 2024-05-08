@@ -60,7 +60,7 @@ builder.Host.ConfigureServices((hostContext,services)=>{
     services.AddScoped<Forpaging>();
     services.AddScoped<RoleService>();
     // services.AddScoped<SubjectService>();
-    // services.AddScoped<ClassService>();
+    services.AddScoped<ClassService>();
     services.AddScoped<GuestService>();
 });
 
