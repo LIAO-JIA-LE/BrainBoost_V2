@@ -95,5 +95,22 @@ namespace BrainBoost_V2.Service
             conn.Execute(sql, new {roomData.roomName,roomData.roomFunction, roomData.timeLimit, roomData.roomId});
         }
         #endregion
+        #region 刪除搶答室
+        public string DeleteRoom(int roomId,int userId){
+            string sql = $@"UPDATE Room SET isDelete = 1 WHERE roomId = @roomId AND userId = @userId
+                            SELECT roomName FROM Room WHERE roomId = @roomId AND userId = @userId
+                        ";
+            using var conn = new SqlConnection(cnstr);
+            return conn.QueryFirstOrDefault<string>(sql, new{roomId, userId});
+        }
+        #endregion
+        #region 顯示搶答室的題目（只有題目內容）
+        public List<Question> RoomQuestionList(int roomId){
+            string sql = $@"SELECT R.question_id, question_content FROM RoomQuestion AS R
+                            INNER JOIN Question AS Q ON R.questionId = Q.questionId WHERE roomId = @roomId AND R.isDelete = 0";
+            using (var conn = new SqlConnection(cnstr))
+            return (List<Question>)conn.Query<Question>(sql,new {roomId});
+        }
+        #endregion
     }
 }

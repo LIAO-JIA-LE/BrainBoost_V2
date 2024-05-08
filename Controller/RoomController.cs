@@ -80,11 +80,11 @@ namespace BrainBoost_V2.Controller
             try
             {
                 int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-                var Response = RoomService.GetRoom(roomId, userId);
+                Room Response = RoomService.GetRoom(roomId, userId);
                 if(Response == null){
                     return Ok(new Response{
                         status_code = 200,
-                        message = "查無資料"
+                        message = "查無搶答室"
                     });
                 }
                 else{
@@ -119,6 +119,59 @@ namespace BrainBoost_V2.Controller
                     message = "修改成功",
                     data = Response
                 });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response{
+                        status_code = 400,
+                        message = e.Message
+                    });
+            }
+        }
+        #endregion
+        #region 刪除搶答室
+        [HttpDelete]
+        [Route("")]
+        public IActionResult DeleteRoom([FromQuery]int roomId){
+            try
+            {
+                int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                var roomname = RoomService.DeleteRoom(roomId, userId);
+                return Ok(new Response{
+                    status_code = 200,
+                    message = "刪除成功 " + roomname + " 搶答室"
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response{
+                        status_code = 400,
+                        message = e.Message
+                    });
+            }
+        }
+        #endregion
+        #region 顯示搶答室的題目（只有題目內容）
+        // 搶答室題目列表
+        [HttpGet]
+        [Route("QuestionList")]
+        public IActionResult RoomQuestionList([FromQuery]int roomId){
+            try
+            {
+                var Response = RoomService.RoomQuestionList(roomId);
+                if(Response == null){
+                    return Ok(new Response{
+                        status_code = 200,
+                        message = "查無資料"
+                    });
+                }
+                else{
+                    return Ok(new Response{
+                        status_code = 200,
+                        message = "顯示成功",
+                        data = Response
+                    });
+                }
             }
             catch (Exception e)
             {

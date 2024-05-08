@@ -201,7 +201,7 @@ namespace BrainBoost_V2.Service
         public User GetDataByAccount(string account){
             string sql = $@"SELECT 
                                 u.*
-                            FROM [User] u 
+                            FROM ""User"" u 
                             JOIN UserRole ur
                             ON u.userId = ur.userId
                             WHERE u.userAccount = @account";

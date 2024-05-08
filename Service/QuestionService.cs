@@ -6,6 +6,8 @@ using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using System.Data;
 using BrainBoost_V2.ViewModels;
+using BrainBoost_V2.Models;
+using BrainBoost_V2.Services;
 
 namespace BrainBoost_V2.Service
 {
@@ -107,7 +109,28 @@ namespace BrainBoost_V2.Service
         }
 
         #endregion
-    
+
+        #region 題目列表（只顯示題目內容，不包含選項）
+        // 全部的題目(篩選)
+        public List<Question> GetQuestionList(int userId,int type, string Search,Forpaging forpaging){
+            string sql = $@" SELECT * FROM Question WHERE is_delete=0 AND userId = @userId AND 1=1";
+            if(!String.IsNullOrEmpty(Search))
+                sql = sql.Replace("1=1", $@"question_content LIKE '%{Search}%' AND type_id = '{type}' AND 1=1");
+            else if(type != 0)
+                sql = sql.Replace("1=1", $@"AND type_id = '{type}'");
+            using var conn = new SqlConnection(cnstr);
+            //指定時間格式
+            return new List<Question>(conn.Query<Question>(sql,new{userId}));
+        }
+        //根據Id獲取題目內容
+        public Question GetQuestionById(int id){
+            string sql = $@" SELECT * FROM Question WHERE question_id = @question_id AND is_delete = 0";
+            using var conn = new SqlConnection(cnstr);
+            return conn.QueryFirstOrDefault<Question>(sql, new{question_id = id});
+        }
+
+        #endregion
+
         #region 檔案匯入
         public DataTable FileDataPrecess(IFormFile file){
             // 上傳的文件
