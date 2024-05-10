@@ -75,37 +75,178 @@ namespace BrainBoost_V2.Service
 
         #region 顯示搶答室
         //全部搶答室
-        public AllRoomViewModel GetAllRoom(AllRoomViewModel data){
+        public List<RoomList> GetAllRoom(AllRoomViewModel data){
+            List<RoomList> dataList = new();
             if(string.IsNullOrEmpty(data.search)){
-                SetMaxPage(data.userId,data.forpaging);
-                data.roomList = GetRoomList(data.userId,data.forpaging);
+                if(data.classId == 0){
+                    //無搜尋、無班級篩選
+                    SetMaxPage(data.userId,data.forpaging);
+                    dataList = GetRoomList(data.userId,data.forpaging);
+                }
+                else{
+                    //無搜尋、有班級篩選
+                    SetMaxPage(data.userId,data.classId,data.forpaging);
+                    dataList = GetRoomList(data.userId,data.classId,data.forpaging);
+                }
             }
             else{
-                SetMaxPage(data.userId,data.forpaging,data.search);
-                data.roomList = GetRoomList(data.userId,data.forpaging,data.search);
+                if(data.classId == 0){
+                    //有搜尋、無班級篩選
+                    SetMaxPage(data.userId,data.forpaging,data.search);
+                    dataList = GetRoomList(data.userId,data.forpaging,data.search);
+                }
+                else{
+                    //有搜尋、有班級篩選
+                    SetMaxPage(data.userId,data.classId,data.forpaging,data.search);
+                    dataList = GetRoomList(data.userId,data.classId,data.forpaging,data.search);
+                }
             }
-            return data;
+            return dataList;
         }
+        #region 無搜尋、無班級篩選
         public void SetMaxPage(int userId,Forpaging forpaging){
-            string sql = $@"SELECT COUNT(*) FROM Room WHERE userId = @userId AND isDelete = 0";
+            string sql = $@"SELECT COUNT(*) FROM (
+                                SELECT 
+                                    ROW_NUMBER() OVER(ORDER BY r.roomId) rNum
+                                    ,c.className
+                                    ,r.roomId
+                                    ,r.roomName
+                                FROM Room r 
+                                JOIN ""Class"" c
+                                ON r.classId = c.classId
+                                WHERE r.userId = @userId AND r.isDelete = 0 
+                            )rc
+                            WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";
             using var conn = new SqlConnection(cnstr);
             int row = conn.QueryFirst<int>(sql,new{userId});
             forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
             forpaging.SetRightPage();
         }
+        public List<RoomList> GetRoomList(int userId,Forpaging forpaging){
+            string sql = $@"SELECT * FROM (
+                                SELECT 
+                                    ROW_NUMBER() OVER(ORDER BY r.roomId) rNum
+                                    ,c.className
+                                    ,r.roomId
+                                    ,r.roomName
+                                FROM Room r 
+                                JOIN ""Class"" c
+                                ON r.classId = c.classId
+                                WHERE r.userId = @userId AND r.isDelete = 0 
+                            )rc
+                            WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";//AND r.classId = @classId 
+            using var conn = new SqlConnection(cnstr);
+            return new List<RoomList>(conn.Query<RoomList>(sql,new{userId}));
+        }
+        #endregion
+        #region 無搜尋、有班級篩選
+        public void SetMaxPage(int userId,int classId,Forpaging forpaging){
+            string sql = $@"SELECT COUNT(*) FROM (
+                                SELECT 
+                                    ROW_NUMBER() OVER(ORDER BY r.roomId) rNum
+                                    ,c.className
+                                    ,r.roomId
+                                    ,r.roomName
+                                FROM Room r 
+                                JOIN ""Class"" c
+                                ON r.classId = c.classId
+                                WHERE r.userId = @userId AND r.classId = @classId AND r.isDelete = 0 
+                            )rc
+                            WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";
+            using var conn = new SqlConnection(cnstr);
+            int row = conn.QueryFirst<int>(sql,new{userId,classId});
+            forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
+            forpaging.SetRightPage();
+        }
+        public List<RoomList> GetRoomList(int userId,int classId,Forpaging forpaging){
+            string sql = $@"SELECT * FROM (
+                                SELECT 
+                                    ROW_NUMBER() OVER(ORDER BY r.roomId) rNum
+                                    ,c.className
+                                    ,r.roomId
+                                    ,r.roomName
+                                FROM Room r 
+                                JOIN ""Class"" c
+                                ON r.classId = c.classId
+                                WHERE r.userId = @userId AND r.classId = @classId AND r.isDelete = 0 
+                            )rc
+                            WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";//AND r.classId = @classId 
+            using var conn = new SqlConnection(cnstr);
+            return new List<RoomList>(conn.Query<RoomList>(sql,new{userId, classId}));
+        }
+        #endregion
+        #region 有搜尋、無班級篩選
         public void SetMaxPage(int userId,Forpaging forpaging,string search){
-            string sql = $@"SELECT COUNT(*) FROM Room WHERE userId = @userId AND isDelete = 0 AND roomName LIKE '%@search%' OR className LIKE '%@search%'";
+            string sql = $@"SELECT COUNT(*) FROM (
+                                SELECT 
+                                    ROW_NUMBER() OVER(ORDER BY r.roomId) rNum
+                                    ,c.className
+                                    ,r.roomId
+                                    ,r.roomName
+                                FROM Room r 
+                                JOIN ""Class"" c
+                                ON r.classId = c.classId
+                                WHERE r.userId = @userId AND r.roomName LINE '%{search}%' AND r.isDelete = 0 
+                            )rc
+                            WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";
             using var conn = new SqlConnection(cnstr);
             int row = conn.QueryFirst<int>(sql,new{userId});
             forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
             forpaging.SetRightPage();
         }
-        public List<Room> GetRoomList(int userId,Forpaging forpaging){
-            
+        public List<RoomList> GetRoomList(int userId,Forpaging forpaging,string search){
+            string sql = $@"SELECT * FROM (
+                                SELECT 
+                                    ROW_NUMBER() OVER(ORDER BY r.roomId) rNum
+                                    ,c.className
+                                    ,r.roomId
+                                    ,r.roomName
+                                FROM Room r 
+                                JOIN ""Class"" c
+                                ON r.classId = c.classId
+                                WHERE r.userId = @userId AND r.roomName LINE '%{search}%' AND r.isDelete = 0 
+                            )rc
+                            WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";//AND r.classId = @classId 
+            using var conn = new SqlConnection(cnstr);
+            return new List<RoomList>(conn.Query<RoomList>(sql,new{userId}));
         }
-        public List<Room> GetRoomList(int userId,Forpaging forpaging,string search){
-
+        #endregion
+        #region 有搜尋、有班級篩選
+        public void SetMaxPage(int userId,int classId,Forpaging forpaging,string search){
+            string sql = $@"SELECT COUNT(*) FROM (
+                                SELECT 
+                                    ROW_NUMBER() OVER(ORDER BY r.roomId) rNum
+                                    ,c.className
+                                    ,r.roomId
+                                    ,r.roomName
+                                FROM Room r 
+                                JOIN ""Class"" c
+                                ON r.classId = c.classId
+                                WHERE r.userId = @userId AND r.classId = @classId AND r.roomName LINE '%{search}%' AND r.isDelete = 0 
+                            )rc
+                            WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";
+            using var conn = new SqlConnection(cnstr);
+            int row = conn.QueryFirst<int>(sql,new{userId,classId});
+            forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
+            forpaging.SetRightPage();
         }
+        public List<RoomList> GetRoomList(int userId,int classId,Forpaging forpaging,string search){
+            string sql = $@"SELECT * FROM (
+                                SELECT 
+                                    ROW_NUMBER() OVER(ORDER BY r.roomId) rNum
+                                    ,c.className
+                                    ,r.roomId
+                                    ,r.roomName
+                                FROM Room r 
+                                JOIN ""Class"" c
+                                ON r.classId = c.classId
+                                WHERE r.userId = @userId AND r.classId = @classId AND r.roomName LINE '%{search}%' AND r.isDelete = 0 
+                            )rc
+                            WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";//AND r.classId = @classId 
+            using var conn = new SqlConnection(cnstr);
+            return new List<RoomList>(conn.Query<RoomList>(sql,new{userId, classId}));
+        }
+        #endregion
         //string sql = $@" SELECT	* FROM Room WHERE isDelete = 0 AND userId = @userId ORDER BY createTime DESC ";
         //單一搶答室
         public Room GetRoom(int roomId,int userId){

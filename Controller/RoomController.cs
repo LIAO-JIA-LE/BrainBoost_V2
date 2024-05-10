@@ -48,21 +48,22 @@ namespace BrainBoost_V2.Controller
         //全部搶答室
         [HttpGet]
         [Route("AllRoom")]
-        public IActionResult GetAllRoom([FromQuery]string search,[FromQuery]int page = 1){
+        public IActionResult GetAllRoom([FromQuery]string search,[FromQuery]int classId,[FromQuery]int page = 1){
             try
             {
                 AllRoomViewModel allRoomViewModel = new AllRoomViewModel
                 {
                     userId = UserService.GetDataByAccount(User.Identity.Name).userId,
+                    classId = classId,
                     forpaging = new Forpaging(page),
                     search = search
                 };
-                allRoomViewModel.roomList = RoomService.GetAllRoom(allRoomViewModel.userId);
+                List<RoomList> roomClassViewModel = RoomService.GetAllRoom(allRoomViewModel);
                 if (allRoomViewModel.roomList == null){
                     return Ok(new Response{
                         status_code = 200,
                         message = "查無資料",
-                        data = allRoomViewModel
+                        data = roomClassViewModel
                     });
                 }
                 else{

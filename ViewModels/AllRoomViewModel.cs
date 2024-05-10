@@ -10,6 +10,7 @@ namespace BrainBoost_V2.ViewModels
     public class AllRoomViewModel
     {
         public int userId{get;set;}
+        public int classId{get;set;}
         public Forpaging forpaging{get;set;}
         public string search{get;set;}
         public List<Room> roomList{get;set;}
