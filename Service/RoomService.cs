@@ -186,7 +186,7 @@ namespace BrainBoost_V2.Service
                                 FROM Room r 
                                 JOIN ""Class"" c
                                 ON r.classId = c.classId
-                                WHERE r.userId = @userId AND r.roomName LINE '%{search}%' AND r.isDelete = 0 
+                                WHERE r.userId = @userId AND r.roomName LIKE '%{search}%' AND r.isDelete = 0 
                             )rc
                             WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";
             using var conn = new SqlConnection(cnstr);
@@ -204,7 +204,7 @@ namespace BrainBoost_V2.Service
                                 FROM Room r 
                                 JOIN ""Class"" c
                                 ON r.classId = c.classId
-                                WHERE r.userId = @userId AND r.roomName LINE '%{search}%' AND r.isDelete = 0 
+                                WHERE r.userId = @userId AND r.roomName LIKE '%{search}%' AND r.isDelete = 0 
                             )rc
                             WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";//AND r.classId = @classId 
             using var conn = new SqlConnection(cnstr);
@@ -222,7 +222,7 @@ namespace BrainBoost_V2.Service
                                 FROM Room r 
                                 JOIN ""Class"" c
                                 ON r.classId = c.classId
-                                WHERE r.userId = @userId AND r.classId = @classId AND r.roomName LINE '%{search}%' AND r.isDelete = 0 
+                                WHERE r.userId = @userId AND r.classId = @classId AND r.roomName LIKE '%{search}%' AND r.isDelete = 0 
                             )rc
                             WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";
             using var conn = new SqlConnection(cnstr);
@@ -240,7 +240,7 @@ namespace BrainBoost_V2.Service
                                 FROM Room r 
                                 JOIN ""Class"" c
                                 ON r.classId = c.classId
-                                WHERE r.userId = @userId AND r.classId = @classId AND r.roomName LINE '%{search}%' AND r.isDelete = 0 
+                                WHERE r.userId = @userId AND r.classId = @classId AND r.roomName LIKE '%{search}%' AND r.isDelete = 0 
                             )rc
                             WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";//AND r.classId = @classId 
             using var conn = new SqlConnection(cnstr);
