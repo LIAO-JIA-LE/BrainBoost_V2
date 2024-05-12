@@ -31,8 +31,8 @@ namespace BrainBoost_V2.Controller
         // 獲得全部問題
         [HttpGet]
         [Route("AllQuestion")]
-        public IActionResult All_Question([FromQuery]string search,[FromQuery]int type = 0,[FromQuery]int page = 1){
-            QuestionViewModel data = new(){
+        public IActionResult AllQuestion([FromQuery]string search,[FromQuery]int type = 0,[FromQuery]int page = 1){
+            AllQuestionViewModel data = new(){
                 forpaging = new Forpaging(page),
                 search = search
             };

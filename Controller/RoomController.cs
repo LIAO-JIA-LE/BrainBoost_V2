@@ -112,6 +112,40 @@ namespace BrainBoost_V2.Controller
                 });
             }
         }
+        //單一搶答室(題目)
+        [HttpGet]
+        [Route("Question")]
+        public IActionResult GetRoomQuestion([FromQuery]int roomId){
+            try
+            {
+                int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                RoomQuestionViewModel roomQuestionList = new()
+                {
+                    room = RoomService.GetRoom(roomId, userId),
+                    questionList = RoomService.RoomQuestionList(roomId, userId)
+                };
+                if (roomQuestionList == null){
+                    return Ok(new Response{
+                        status_code = 200,
+                        message = "查無搶答室"
+                    });
+                }
+                else{
+                    return Ok(new Response{
+                        status_code = 200,
+                        message = "讀取成功",
+                        data = roomQuestionList
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response{
+                        status_code = 400,
+                        message = e.Message
+                });
+            }
+        }
         #endregion
         #region 修改搶答室
         // 修改 搶答室資訊
@@ -160,36 +194,8 @@ namespace BrainBoost_V2.Controller
             }
         }
         #endregion
-        #region 顯示搶答室的題目（只有題目內容）
-        // 搶答室題目列表
-        [HttpGet]
-        [Route("QuestionList")]
-        public IActionResult RoomQuestionList([FromQuery]int roomId){
-            try
-            {
-                var Response = RoomService.RoomQuestionList(roomId);
-                if(Response == null){
-                    return Ok(new Response{
-                        status_code = 200,
-                        message = "查無資料"
-                    });
-                }
-                else{
-                    return Ok(new Response{
-                        status_code = 200,
-                        message = "顯示成功",
-                        data = Response
-                    });
-                }
-            }
-            catch (Exception e)
-            {
-                return BadRequest(new Response{
-                        status_code = 400,
-                        message = e.Message
-                    });
-            }
-        }
-        #endregion
+        #region 新增搶答室題目
+        
+        #endregion     
     }
 }

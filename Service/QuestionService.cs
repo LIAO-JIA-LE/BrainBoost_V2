@@ -102,31 +102,88 @@ namespace BrainBoost_V2.Service
                             SET @tagId = SCOPE_IDENTITY()";
             // 執行Sql
             using var conn = new SqlConnection(cnstr);
-            int tagId = conn.QueryFirstOrDefault<int>(sql, new{tagContent});
+            // int tagId = conn.QueryFirstOrDefault<int>(sql, new{tagContent});
 
-            string sql2 = $@"INSERT SubjectTag(subjectId, tagId) VALUES(@subjectId, @tagId)";
-            conn.Execute(sql2, new{ subjectId, tagId });
+            sql += $@"INSERT SubjectTag(subjectId, tagId) VALUES(@subjectId, @tagId)";
+            conn.Execute(sql, new{ subjectId,tagContent});
         }
 
         #endregion
 
         #region 題目列表（只顯示題目內容，不包含選項）
         // 全部的題目(篩選)
-        public List<Question> GetQuestionList(int userId,int type, string Search,Forpaging forpaging){
-            string sql = $@" SELECT * FROM Question WHERE is_delete=0 AND userId = @userId AND 1=1";
-            if(!String.IsNullOrEmpty(Search))
-                sql = sql.Replace("1=1", $@"question_content LIKE '%{Search}%' AND type_id = '{type}' AND 1=1");
-            else if(type != 0)
-                sql = sql.Replace("1=1", $@"AND type_id = '{type}'");
-            using var conn = new SqlConnection(cnstr);
+        public List<Question> GetQuestionList(int userId,int type, string search,Forpaging forpaging){
+            List<Question> questionList;
+            if(!String.IsNullOrEmpty(search)){
+                SetMaxPage(userId,type,search,forpaging);
+                questionList = GetQuestion(userId,type,search,forpaging);
+            }
+            else{
+                SetMaxPage(userId,type,forpaging);
+                questionList = GetQuestion(userId,type,forpaging);
+            }
             //指定時間格式
-            return new List<Question>(conn.Query<Question>(sql,new{userId}));
+            return questionList;
         }
-        //根據Id獲取題目內容
-        public Question GetQuestionById(int id){
-            string sql = $@" SELECT * FROM Question WHERE question_id = @question_id AND is_delete = 0";
+        #region 無搜尋
+        public void SetMaxPage(int userId,int typeId,Forpaging forpaging){
+            string sql = $@" SELECT COUNT(*) FROM Question WHERE isDelete=0 AND userId = @userId AND 1=1";
+            if(typeId != 0)
+                sql = sql.Replace("1=1", $@"1=1 AND typeId = @typeId");
             using var conn = new SqlConnection(cnstr);
-            return conn.QueryFirstOrDefault<Question>(sql, new{question_id = id});
+            int row = conn.QueryFirst<int>(sql,new{userId,typeId});
+            forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
+            forpaging.SetRightPage();
+        }
+        public List<Question> GetQuestion(int userId,int typeId,Forpaging forpaging){
+            string sql = $@"SELECT
+                                *
+                            FROM(
+                                SELECT 
+                                    ROW_NUMBER() OVER(ORDER BY q.questionId) qNum,
+                                    *
+                                FROM Question q
+                                WHERE isDelete=0 AND userId = @userId AND 1=1
+                            )Q
+                            WHERE Q.qNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";
+            if(typeId != 0)
+                sql = sql.Replace("1=1", $@"1=1 AND typeId = @typeId");
+            using var conn = new SqlConnection(cnstr);
+            return new List<Question>(conn.Query<Question>(sql,new{userId,typeId}));
+        }
+        #endregion
+        #region 有搜尋
+        public void SetMaxPage(int userId,int typeId,string search,Forpaging forpaging){
+            string sql = $@" SELECT COUNT(*) FROM Question WHERE isDelete=0 AND userId = @userId AND questionContent LIKE '%{search}%' AND 1=1";
+            if(typeId != 0)
+                sql = sql.Replace("1=1", $@"1=1 AND typeId = @typeId");
+            using var conn = new SqlConnection(cnstr);
+            int row = conn.QueryFirst<int>(sql,new{userId,typeId});
+            forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
+            forpaging.SetRightPage();
+        }
+        public List<Question> GetQuestion(int userId,int typeId,string search,Forpaging forpaging){
+            string sql = $@"SELECT
+                                *
+                            FROM(
+                                SELECT 
+                                    ROW_NUMBER() OVER(ORDER BY q.questionId) qNum,
+                                    *
+                                FROM Question q
+                                WHERE isDelete=0 AND userId = @userId AND questionContent LIKE '%{search}%' AND 1=1
+                            )Q
+                            WHERE Q.qNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";
+            if(typeId != 0)
+                sql = sql.Replace("1=1", $@"1=1 AND typeId = @typeId");
+            using var conn = new SqlConnection(cnstr);
+            return new List<Question>(conn.Query<Question>(sql,new{userId,typeId}));
+        }
+        #endregion
+        // 根據Id獲取題目內容
+        public Question GetQuestionById(int questionId){
+            string sql = $@" SELECT * FROM Question WHERE questionId = @questionId AND isDelete = 0";
+            using var conn = new SqlConnection(cnstr);
+            return conn.QueryFirstOrDefault<Question>(sql, new{questionId});
         }
 
         #endregion

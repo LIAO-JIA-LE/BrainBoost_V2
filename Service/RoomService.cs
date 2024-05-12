@@ -76,7 +76,7 @@ namespace BrainBoost_V2.Service
         #region 顯示搶答室
         //全部搶答室
         public List<RoomList> GetAllRoom(AllRoomViewModel data){
-            List<RoomList> dataList = new();
+            List<RoomList> dataList;
             if(string.IsNullOrEmpty(data.search)){
                 if(data.classId == 0){
                     //無搜尋、無班級篩選
@@ -274,11 +274,22 @@ namespace BrainBoost_V2.Service
         }
         #endregion
         #region 顯示搶答室的題目（只有題目內容）
-        public List<Question> RoomQuestionList(int roomId){
-            string sql = $@"SELECT R.question_id, question_content FROM RoomQuestion AS R
-                            INNER JOIN Question AS Q ON R.questionId = Q.questionId WHERE roomId = @roomId AND R.isDelete = 0";
+        public List<Question> RoomQuestionList(int roomId,int userId){
+            string sql = $@"SELECT
+                                q.*
+                            FROM(
+                                SELECT
+                                    rq.roomId,
+                                    rq.questionId
+                                FROM RoomQuestion rq
+                                JOIN Room r
+                                ON rq.roomId = r.roomId
+                                WHERE rq.isOutput = 0 AND rq.isDelete = 0 AND r.isDelete = 0 AND r.userId = @userId AND r.roomId = @roomId
+                            )rrq
+                            INNER JOIN Question q
+                            ON rrq.questionId = q.questionId";
             using (var conn = new SqlConnection(cnstr))
-            return (List<Question>)conn.Query<Question>(sql,new {roomId});
+            return (List<Question>)conn.Query<Question>(sql,new {roomId,userId});
         }
         #endregion
     }
