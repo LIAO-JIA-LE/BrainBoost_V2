@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using BrainBoost_V2.Services;
 using System.Text;
 using BrainBoost_V2.Models;
 using BrainBoost_V2.Service;
@@ -59,7 +58,7 @@ builder.Host.ConfigureServices((hostContext,services)=>{
     // services.AddScoped<ImportRepository>();
     services.AddScoped<Forpaging>();
     services.AddScoped<RoleService>();
-    // services.AddScoped<SubjectService>();
+    services.AddScoped<SubjectService>();
     services.AddScoped<ClassService>();
     services.AddScoped<GuestService>();
 });

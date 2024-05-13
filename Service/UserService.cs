@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using BrainBoost_V2.Models;
 using BrainBoost_V2.Parameter;
-using BrainBoost_V2.Services;
+using BrainBoost_V2.Service;
 using Dapper;
 
 namespace BrainBoost_V2.Service
@@ -221,7 +221,7 @@ namespace BrainBoost_V2.Service
 
         #region 修改個人資訊
         //修改個人資料
-        public void UpdateUserData(UserUpdate user){
+        public void UpdateUserData(UpdateUser user){
             string sql = $@"UPDATE ""User"" SET 
                                 userName = @userName, 
                                 userPhoto = @userPhoto

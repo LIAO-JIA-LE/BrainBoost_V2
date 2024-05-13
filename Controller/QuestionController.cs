@@ -3,7 +3,6 @@ using BrainBoost_V2.Models;
 using BrainBoost_V2.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using BrainBoost_V2.Services;
 
 namespace BrainBoost_V2.Controller
 {

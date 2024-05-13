@@ -4,7 +4,6 @@ using BrainBoost_V2.Models;
 using BrainBoost_V2.ViewModels;
 using Dapper;
 using System.Text;
-using BrainBoost_V2.Services;
 
 namespace BrainBoost_V2.Service
 {
@@ -116,7 +115,7 @@ namespace BrainBoost_V2.Service
                                 ON r.classId = c.classId
                                 WHERE r.userId = @userId AND r.isDelete = 0 
                             )rc
-                            WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";
+                            ";//WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }
             using var conn = new SqlConnection(cnstr);
             int row = conn.QueryFirst<int>(sql,new{userId});
             forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
@@ -152,7 +151,7 @@ namespace BrainBoost_V2.Service
                                 ON r.classId = c.classId
                                 WHERE r.userId = @userId AND r.classId = @classId AND r.isDelete = 0 
                             )rc
-                            WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";
+                            ";
             using var conn = new SqlConnection(cnstr);
             int row = conn.QueryFirst<int>(sql,new{userId,classId});
             forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
@@ -188,7 +187,7 @@ namespace BrainBoost_V2.Service
                                 ON r.classId = c.classId
                                 WHERE r.userId = @userId AND r.roomName LIKE '%{search}%' AND r.isDelete = 0 
                             )rc
-                            WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";
+                            ";
             using var conn = new SqlConnection(cnstr);
             int row = conn.QueryFirst<int>(sql,new{userId});
             forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
@@ -224,7 +223,7 @@ namespace BrainBoost_V2.Service
                                 ON r.classId = c.classId
                                 WHERE r.userId = @userId AND r.classId = @classId AND r.roomName LIKE '%{search}%' AND r.isDelete = 0 
                             )rc
-                            WHERE rc.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }";
+                            ";
             using var conn = new SqlConnection(cnstr);
             int row = conn.QueryFirst<int>(sql,new{userId,classId});
             forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
@@ -249,14 +248,21 @@ namespace BrainBoost_V2.Service
         #endregion
         //string sql = $@" SELECT	* FROM Room WHERE isDelete = 0 AND userId = @userId ORDER BY createTime DESC ";
         //單一搶答室
-        public Room GetRoom(int roomId,int userId){
-            string sql = $@" SELECT	* FROM Room WHERE roomId = @roomId AND isDelete = 0 AND userId = @userId";
+        public RoomClassViewModel GetRoom(int roomId,int userId){
+            string sql = $@"SELECT
+                                r.*,
+                                c.className
+                            FROM Room r
+                            JOIN ""Class"" c
+                            ON r.classId = c.classId
+                            WHERE r.userId = @userId AND r.isDelete = 0 AND c.isDelete = 0
+                            ";
             using var conn = new SqlConnection(cnstr);
-            return conn.QueryFirstOrDefault<Room>(sql, new { roomId, userId });
+            return conn.QueryFirstOrDefault<RoomClassViewModel>(sql, new { roomId, userId });
         }
         #endregion
         #region 修改搶答室資訊
-        public void UpdateRoom(RoomUpdate roomData){
+        public void UpdateRoom(UpdateRoom roomData){
             // 新增搶答室資訊
             string sql = $@"UPDATE Room SET roomName = @roomName, roomFunction = @roomFunction,
                             timeLimit = @timeLimit WHERE roomId = @roomId ";

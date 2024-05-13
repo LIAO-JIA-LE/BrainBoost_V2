@@ -1,4 +1,3 @@
-using BrainBoost_V2.Services;
 using BrainBoost_V2.Models;
 using BrainBoost_V2.Service;
 using BrainBoost_V2.Parameter;
@@ -125,7 +124,7 @@ namespace BrainBoost_V2.Controller
         //修改個人資料
         [HttpPut]
         [Route("")]
-        public IActionResult UpdateUserData(UserUpdate Data){
+        public IActionResult UpdateUserData(UpdateUser Data){
             try{
                 if(User.Identity.Name == null){
                     return BadRequest(new Response(){
@@ -133,7 +132,7 @@ namespace BrainBoost_V2.Controller
                         message = "請先登入"
                     });
                 }
-                UserUpdate user = new(){
+                UpdateUser user = new(){
                     userId = UserService.GetDataByAccount(User.Identity.Name).userId,
                     userName = Data.userName
                 };

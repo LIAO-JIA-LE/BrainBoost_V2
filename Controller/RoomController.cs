@@ -4,7 +4,6 @@ using BrainBoost_V2.Parameter;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using BrainBoost_V2.ViewModels;
-using BrainBoost_V2.Services;
 
 namespace BrainBoost_V2.Controller
 {
@@ -26,7 +25,7 @@ namespace BrainBoost_V2.Controller
                 roomData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
                 var Response = roomData;
                 int roomId = RoomService.InsertRoom(roomData);
-                Room room = RoomService.GetRoom(roomId,roomData.userId);
+                RoomClassViewModel room = RoomService.GetRoom(roomId,roomData.userId);
                 return Ok(new Response{
                     status_code = 200,
                     message = "新增成功",
@@ -58,12 +57,12 @@ namespace BrainBoost_V2.Controller
                     forpaging = new Forpaging(page),
                     search = search
                 };
-                List<RoomList> roomClassViewModel = RoomService.GetAllRoom(allRoomViewModel);
+                allRoomViewModel.roomList = RoomService.GetAllRoom(allRoomViewModel);
                 if (allRoomViewModel.roomList == null){
                     return Ok(new Response{
                         status_code = 200,
                         message = "查無資料",
-                        data = roomClassViewModel
+                        data = allRoomViewModel
                     });
                 }
                 else{
@@ -89,18 +88,18 @@ namespace BrainBoost_V2.Controller
             try
             {
                 int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-                Room Response = RoomService.GetRoom(roomId, userId);
-                if(Response == null){
-                    return Ok(new Response{
-                        status_code = 200,
-                        message = "查無搶答室"
+                RoomClassViewModel roomClassViewModel = RoomService.GetRoom(roomId, userId);
+                if(roomClassViewModel == null){
+                    return BadRequest(new Response{
+                        status_code = 400,
+                        message = "該班級已刪除或無搶答室"
                     });
                 }
                 else{
                     return Ok(new Response{
                         status_code = 200,
                         message = "讀取成功",
-                        data = Response
+                        data = roomClassViewModel
                     });
                 }
             }
@@ -127,7 +126,7 @@ namespace BrainBoost_V2.Controller
                 if (roomQuestionList == null){
                     return Ok(new Response{
                         status_code = 200,
-                        message = "查無搶答室"
+                        message = "該班級已刪除"
                     });
                 }
                 else{
@@ -151,7 +150,7 @@ namespace BrainBoost_V2.Controller
         // 修改 搶答室資訊
         [HttpPut]
         [Route("")]
-        public IActionResult UpdateRoom([FromBody]RoomUpdate raceData){
+        public IActionResult UpdateRoom([FromBody]UpdateRoom raceData){
             try
             {
                 int userId = UserService.GetDataByAccount(User.Identity.Name).userId;

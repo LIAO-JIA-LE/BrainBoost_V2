@@ -11,6 +11,6 @@ namespace BrainBoost.Parameter
         //科目名稱
         public string subjectContent{get;set;}
         //老師帳號
-        public int teacherId{get;set;}
+        public int userId{get;set;}
     }
 }

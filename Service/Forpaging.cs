@@ -1,4 +1,4 @@
-﻿namespace BrainBoost_V2.Services
+﻿namespace BrainBoost_V2.Service
 {
     public class Forpaging
     {

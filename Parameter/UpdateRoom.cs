@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace BrainBoost_V2.Parameter
 {
-    public class RoomUpdate
+    public class UpdateRoom
     {
         // 搶答室編號
         public int roomId { get; set; }
