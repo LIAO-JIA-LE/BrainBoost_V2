@@ -7,7 +7,8 @@ namespace BrainBoost_V2.Models
 {
     public class Subject
     {
-        public int subjectId{get;set;}
-        public string subjectContent{get;set;}
+        public int userId {get;set;}
+        public int subjectId {get;set;}
+        public string subjectContent {get;set;}
     }
 }
