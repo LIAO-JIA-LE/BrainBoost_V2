@@ -152,7 +152,7 @@ namespace BrainBoost_V2.Service
         //軟刪除科目
         public void DeleteSubject(int userId,int subjectId){
             string sql = $@"UPDATE ""Subject""
-                            SET is_delete = 1
+                            SET isDelete = 1
                             WHERE subjectId = @subjectId AND userId = @userId";
             using var conn = new SqlConnection(cnstr);
             conn.Execute(sql,new{ userId, subjectId});

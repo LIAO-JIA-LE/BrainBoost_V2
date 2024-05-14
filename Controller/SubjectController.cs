@@ -1,14 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using BrainBoost.Parameter;
 using BrainBoost_V2.Models;
 using BrainBoost_V2.Parameter;
 using BrainBoost_V2.Service;
 using BrainBoost_V2.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace BrainBoost_V2.Controller
 {
@@ -136,6 +131,8 @@ namespace BrainBoost_V2.Controller
             Response result;
             try
             {
+                if(User.Identity.Name == null)
+                    return BadRequest(new Response{status_code = 400,message = "請先登入"});
                 User user = UserService.GetDataByAccount(User.Identity.Name);
                 if(SubjectService.GetSubject(user.userId,subjectId) != null){
                     SubjectService.DeleteSubject(user.userId,subjectId);

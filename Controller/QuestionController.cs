@@ -50,6 +50,18 @@ namespace BrainBoost_V2.Controller
             });
         }
         #endregion
+        #region 修改題目
+        // [HttpPut]
+        // public IActionResult UpdateQuestion(){
+            
+        // }
+        #endregion
+        #region 刪除題目
+        // [HttpDelete]
+        // public IActionResult DeleteQuestion([FromQuery]int questionId){
+            
+        // }
+        #endregion
     }
 
 }
