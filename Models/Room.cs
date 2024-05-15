@@ -16,6 +16,8 @@ namespace BrainBoost_V2.Models
         // 搶答室名稱
         public string roomName { get; set; }
 
+        public int classId { get; set; }
+
         // 創建時間
         public DateTime createTime { get; set; }
 

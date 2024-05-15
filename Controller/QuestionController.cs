@@ -3,7 +3,6 @@ using BrainBoost_V2.Models;
 using BrainBoost_V2.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using BrainBoost_V2.Services;
 
 namespace BrainBoost_V2.Controller
 {
@@ -50,6 +49,18 @@ namespace BrainBoost_V2.Controller
                 data = data
             });
         }
+        #endregion
+        #region 修改題目
+        // [HttpPut]
+        // public IActionResult UpdateQuestion(){
+            
+        // }
+        #endregion
+        #region 刪除題目
+        // [HttpDelete]
+        // public IActionResult DeleteQuestion([FromQuery]int questionId){
+            
+        // }
         #endregion
     }
 

@@ -6,9 +6,11 @@ using BrainBoost_V2.Models;
 
 namespace BrainBoost_V2.ViewModels
 {
-    public class SubjectViewModel
+    public class SubjectTagViewModel
     {
-        public Subject subject {get;set;} = new();
-        public User teacher {get;set;} = new();
+        public Subject subject{get;set;}
+        public User user{get;set;}
+        public List<Tag> tagList{get;set;}
+
     }
 }

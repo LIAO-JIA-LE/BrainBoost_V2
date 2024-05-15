@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using BrainBoost.Parameter;
 using BrainBoost_V2.Models;
+using BrainBoost_V2.Parameter;
 using BrainBoost_V2.Service;
+using BrainBoost_V2.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace BrainBoost_V2.Controller
 {
@@ -22,50 +19,66 @@ namespace BrainBoost_V2.Controller
         // 查看該老師所有的科目
         [HttpGet]
         [Route("AllSubject")]
-        public IActionResult GetAllSubject(){
+        public IActionResult GetAllSubject([FromQuery]string search,[FromQuery]int page = 1){
             Response result;
             try{
-                User user = UserService.GetDataByAccount(User.Identity.Name);
-                result = new(){
-                    status_code = 200,
-                    data = SubjectService.GetAllSubject(user.userId)
-                };
+                AllSubjectViewModel AllSubjectViewModel = new(){
+                                                        forpaging = new Forpaging(page),
+                                                        userId = UserService.GetDataByAccount(User.Identity.Name).userId,
+                                                        search = search
+                                                    };
+                AllSubjectViewModel.subjectList = SubjectService.GetAllSubject(AllSubjectViewModel);
+                return Ok(new Response(){
+                                        status_code = 200,
+                                        message = "讀取成功",
+                                        data = AllSubjectViewModel
+                                    });
             }
-            catch (Exception ex) {
-                result = new(){
-                    status_code = 400,
-                    message = ex.Message
-                };
+            catch (Exception e) {
+                return BadRequest(new Response(){
+                                        status_code = 400,
+                                        message = e.Message
+                                    });
             }
-            return Ok(result);
         }
         //查詢單個科目
         [HttpGet]
-        [Route("Subject")]
-        public IActionResult GetSubject(int subjectId){
-            Response result;
+        [Route("")]
+        public IActionResult GetSubject([FromQuery]int subjectId){
             try
             {
-                User user = UserService.GetDataByAccount(User.Identity.Name);
-                result = new(){
-                    status_code = 200,
-                    data = SubjectService.GetSubject(user.userId,subjectId)
-                };
+                Subject subject = new(){
+                                        userId = UserService.GetDataByAccount(User.Identity.Name).userId,
+                                        subjectId = subjectId
+                                    };
+                SubjectTagViewModel subjectTagViewModel = SubjectService.GetSubject(subject.userId,subject.subjectId);
+                if(subjectTagViewModel != null){
+                    return Ok(new Response(){
+                                            status_code = 200,
+                                            message = "讀取成功",
+                                            data = subjectTagViewModel
+                                        });
+                }
+                else
+                    return Ok(new Response(){
+                                            status_code = 200,
+                                            message = "查無科目",
+                                            data = subjectTagViewModel
+                                        });
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                result = new(){
+                return BadRequest(new Response(){
                     status_code = 400,
-                    message = ex.Message
-                };
+                    message = e.Message
+                });
             }
-            return Ok(result);
         }
 
         // 新增科目
         [HttpPost]
         public IActionResult InsertSubject([FromBody]InsertSubject insertData){
-            insertData.teacherId = UserService.GetDataByAccount(User.Identity.Name).userId;
+            insertData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
             Response result;
             try{
                 
@@ -86,13 +99,13 @@ namespace BrainBoost_V2.Controller
 
         //修改科目名稱
         [HttpPut]
-        public IActionResult UpdateSubject([FromQuery]int subjectId,[FromBody]string subjectContent){
+        public IActionResult UpdateSubject([FromBody]UpdateSubject updateSubject){
             Response result;
             try
             {
                 Subject subject = new(){
-                                    subjectId = subjectId,
-                                    subjectContent = subjectContent,
+                                    subjectId = updateSubject.subjectId,
+                                    subjectContent = updateSubject.subjectContent,
                                     userId = UserService.GetDataByAccount(User.Identity.Name).userId
                                 };
                 SubjectService.UpdateSubject(subject);
@@ -118,6 +131,8 @@ namespace BrainBoost_V2.Controller
             Response result;
             try
             {
+                if(User.Identity.Name == null)
+                    return BadRequest(new Response{status_code = 400,message = "請先登入"});
                 User user = UserService.GetDataByAccount(User.Identity.Name);
                 if(SubjectService.GetSubject(user.userId,subjectId) != null){
                     SubjectService.DeleteSubject(user.userId,subjectId);

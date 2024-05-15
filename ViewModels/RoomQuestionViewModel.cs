@@ -8,7 +8,7 @@ namespace BrainBoost_V2.ViewModels
 {
     public class RoomQuestionViewModel
     {
-        public Room room{ get; set; }
+        public RoomClassViewModel room{ get; set; }
         public List<Question> questionList { get; set; }
     }
 }

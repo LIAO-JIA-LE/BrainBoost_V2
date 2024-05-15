@@ -7,12 +7,11 @@ using BrainBoost_V2.Service;
 
 namespace BrainBoost_V2.ViewModels
 {
-    public class AllRoomViewModel
+    public class AllSubjectViewModel
     {
-        public int userId{get;set;}
-        public int classId{get;set;}
-        public Forpaging forpaging{get;set;}
+        public int userId {get;set;}
         public string search{get;set;}
-        public List<RoomList> roomList{get;set;}
+        public Forpaging forpaging{get;set;}
+        public List<Subject> subjectList {get;set;}
     }
 }
