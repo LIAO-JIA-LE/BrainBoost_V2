@@ -52,7 +52,7 @@ namespace BrainBoost_V2.Controller
                                         subjectId = subjectId
                                     };
                 SubjectTagViewModel subjectTagViewModel = SubjectService.GetSubject(subject.userId,subject.subjectId);
-                if(subjectTagViewModel != null){
+                if(subjectTagViewModel.subject != null){  //
                     return Ok(new Response(){
                                             status_code = 200,
                                             message = "讀取成功",
@@ -61,9 +61,8 @@ namespace BrainBoost_V2.Controller
                 }
                 else
                     return Ok(new Response(){
-                                            status_code = 200,
-                                            message = "查無科目",
-                                            data = subjectTagViewModel
+                                            status_code = 204,
+                                            message = "查無科目或您無此權限"
                                         });
             }
             catch (Exception e)

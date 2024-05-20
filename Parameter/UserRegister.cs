@@ -14,6 +14,9 @@ namespace BrainBoost_V2.Parameter
         [Required(ErrorMessage = "請輸入用戶名稱")]
         public required string userName { get; set; }
 
+        //會員照片
+        public IFormFile? userPhoto { get; set; }
+
         // 會員帳號
         [DisplayName("帳號")]
         [StringLength(20, MinimumLength = 6, ErrorMessage = "帳號長度需介於6-20字元")]

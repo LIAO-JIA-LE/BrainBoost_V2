@@ -10,10 +10,11 @@ namespace BrainBoost_V2.Controller
 {
     [Route("BrainBoost/[controller]")]
     [ApiController]
-    public class ImportController(QuestionService _questionService, UserService _userService) : ControllerBase
+    public class ImportController(QuestionService _questionService, UserService _userService, SubjectService _subjectService) : ControllerBase
     {
         #region 呼叫函式
 
+        readonly SubjectService SubjectService = _subjectService;
         readonly QuestionService QuestionService = _questionService;
         readonly UserService UserService = _userService;
         
@@ -25,6 +26,11 @@ namespace BrainBoost_V2.Controller
         public IActionResult TrueOrFalse([FromQuery]int subjectId, [FromBody]TureorFalse question){
             GetQuestion getQuestion = new();
             getQuestion.tagData.tagContent = question.tagContent;
+            // 使用者防呆
+            int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+            if(SubjectService.GetSubject(userId,subjectId) == null)
+                 return BadRequest(new Response{ status_code = 400,
+                                                 message = "您非此科目擁有者"});
             getQuestion.subjectData.subjectId = subjectId;
             // 題目敘述
             getQuestion.questionData = new Question(){
@@ -48,12 +54,12 @@ namespace BrainBoost_V2.Controller
             catch (Exception e)
             {
                 return BadRequest(new Response(){
-                        status_code = Response.StatusCode,
+                        status_code = 400,
                         message = $"發生錯誤:  {e}"
                     });
             }
             return Ok(new Response(){
-                status_code = Response.StatusCode,
+                status_code = 200,
                 message = "新增是非題成功",
                 data = getQuestion
             });

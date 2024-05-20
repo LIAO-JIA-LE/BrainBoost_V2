@@ -3,6 +3,8 @@ using BrainBoost_V2.Models;
 using BrainBoost_V2.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using BrainBoost_V2.Parameter;
+using back.ViewModels;
 
 namespace BrainBoost_V2.Controller
 {
@@ -12,19 +14,38 @@ namespace BrainBoost_V2.Controller
         #region 呼叫函示
         private readonly QuestionService QuestionService;
         readonly UserService UserService;
+        readonly IWebHostEnvironment evn;
 
-        public QuestionController(QuestionService _questionService,UserService _UserService)
+        public QuestionController(QuestionService _questionService,UserService _UserService,IWebHostEnvironment _evn)
         {
             QuestionService = _questionService;
             UserService = _UserService;
+            evn = _evn;
         }
         #endregion
 
         #region 顯示問題
         // 獲得 單一問題
         [HttpGet]
-        public Question Question([FromQuery]int question_id){
-            return QuestionService.GetQuestionById(question_id);
+        public IActionResult Question([FromQuery]int questionId){
+            // return QuestionService.GetQuestionById(question_id);
+            try
+            {
+                if(User.Identity.Name == null ) 
+                    return BadRequest(new Response{status_code = 400 , message = "請先登入"});
+                int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                QuestionViewModel question = QuestionService.GetQuestionViewModelById(userId,questionId);
+                if(question == null) return BadRequest(new Response{status_code = 400, message = "您無權查看此題或無資料"});
+                return Ok(new Response{
+                    status_code = 200,
+                    message = "讀取成功",
+                    data = question
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response{status_code = 400, message = e.Message});
+            }
         }
 
         // 獲得全部問題
@@ -51,10 +72,61 @@ namespace BrainBoost_V2.Controller
         }
         #endregion
         #region 修改題目
-        // [HttpPut]
-        // public IActionResult UpdateQuestion(){
-            
-        // }
+        [HttpPut]
+        public IActionResult UpdateQuestion([FromForm]UpdateQuestion UpdateData){
+            try
+            {
+                // if(User.Identity.Name == null ) 
+                //     return BadRequest(new Response{status_code = 400 , message = "請先登入"});
+                // else{
+                    // UpdateData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                    Question question = QuestionService.GetQuestionById(UpdateData.questionId);
+                    if(question == null || question.userId != UpdateData.userId) 
+                        return BadRequest(new Response{status_code=400 , message = "您無權更改此題或無此題"});
+                    QuestionViewModel questionViewModel = new(){
+                        questionId = UpdateData.questionId,
+                        userId  = UpdateData.userId ,
+                        typeId  = UpdateData.typeId ,
+                        questionContent  = UpdateData.questionContent ,
+                        questionLevel  = UpdateData.questionLevel ,
+                        answerContent  = UpdateData.answerContent ,
+                        parse  = UpdateData.parse ?? "",
+                        // options = []
+                    };
+                    // 選項陣列處理
+                    List<Option> options = QuestionService.GetQuestionOptionByqId(questionViewModel.questionId);
+                    // 處理圖片
+                    var wwwroot = evn.ContentRootPath + @"\wwwroot\images\";
+                    if( UpdateData.typeId == 2 && UpdateData.optionPicture != null ){
+                        int i = 0;
+                        foreach(var optionPicture in UpdateData.optionPicture){
+                            i++;
+                            var imgname = UpdateData.questionId.ToString() + options[i].ToString() + ".jpg";//
+                            var img_path = wwwroot + imgname;
+                            using var stream = System.IO.File.Create(img_path);
+                            optionPicture.CopyTo(stream);
+                            questionViewModel.options.Add(new(){optionContent = UpdateData.optionContent[i],optionPicture = img_path});
+                        }
+                    }
+                    else
+                       foreach(var optionContent in UpdateData.optionContent){
+                            questionViewModel.options.Add(new(){optionContent = optionContent});
+                        }
+                       
+                    QuestionService.UpdateQuestion(questionViewModel);
+                    //包Response資料
+                    return Ok(new Response{status_code = 200, message = "修改成功",data = questionViewModel});
+                // }
+            }
+            catch (System.Exception e)
+            {
+                
+                return BadRequest(new Response{
+                    status_code = 400,
+                    message = e.Message
+                });
+            }
+        }
         #endregion
         #region 刪除題目
         // [HttpDelete]

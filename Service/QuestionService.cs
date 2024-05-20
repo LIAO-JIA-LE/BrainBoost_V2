@@ -7,6 +7,8 @@ using NPOI.XSSF.UserModel;
 using System.Data;
 using BrainBoost_V2.ViewModels;
 using BrainBoost_V2.Models;
+using back.ViewModels;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace BrainBoost_V2.Service
 {
@@ -20,7 +22,7 @@ namespace BrainBoost_V2.Service
         public void InsertQuestion(GetQuestion getQuestion)
         {
             string sql = $@"INSERT INTO Question(userId, typeId, questionContent, questionPicture, questionLevel, isDelete)
-                            VALUES(@UserId, @TypeId, @QuestionContent, @QuestionPicture, @QuestionLevel, @IsDelete);
+                            VALUES(@UserId, @TypeId, @questionContent, @questionPicture, @questionLevel, @IsDelete);
                             
                             SELECT CAST(SCOPE_IDENTITY() as int)";
             
@@ -184,9 +186,94 @@ namespace BrainBoost_V2.Service
             using var conn = new SqlConnection(cnstr);
             return conn.QueryFirstOrDefault<Question>(sql, new{questionId});
         }
-
+        // 根據Id獲取題選項
+        public List<Option> GetQuestionOptionByqId(int questionId){
+            string sql = $@"SELECT * FROM [Option] WHERE questionId = @questionId";
+            using var conn = new SqlConnection(cnstr);
+            return (List<Option>)conn.Query<Option>(sql,new{questionId});
+        }
         #endregion
+        #region 根據questionId獲取詳細題目資訊(選項、解答)
+        public QuestionViewModel GetQuestionViewModelById(int userId,int questionId){
+            using var conn = new SqlConnection(cnstr);
+            string sql = $@"SELECT q.questionId, q.userId, q.typeId, q.questionContent, q.questionPicture, q.questionLevel,
+                                   a.answerContent, a.parse
+                            FROM Question q
+                            JOIN Answer a ON q.questionId = a.questionId
+                            WHERE q.questionId = @questionId AND q.userId = @userId AND q.isDelete = 0";
+            // string sql = $@"
+            //                 IF(SELECT typeId FROM Question WHERE questionId = @questionId AND userId = @userId AND isDelete = 0) = 1
+            //                 BEGIN
+            //                     SELECT
+            //                         qo.*,
+            //                         a.answerContent,
+            //                         a.parse
+            //                     FROM(
+            //                         SELECT q.* FROM Question q
+            //                         LEFT JOIN ""Option"" o ON o.questionId = q.questionId
+            //                         WHERE q.userId = @userId AND q.questionId = @questionId AND q.isDelete = 0
+            //                     )qo
+            //                     LEFT JOIN Answer a on a.questionId = qo.questionId
+            //                 END
+            //                 ELSE
+            //                 BEGIN
+            //                     SELECT
+            //                         qo.*,
+            //                         a.answerContent,
+            //                         a.parse
+            //                     FROM(
+            //                         SELECT q.*,o.optionContent FROM Question q
+            //                         LEFT JOIN ""Option"" o ON o.questionId = q.questionId
+            //                         WHERE q.userId = @userId AND q.questionId = @questionId AND q.isDelete = 0
+            //                     )qo
+            //                     LEFT JOIN Answer a on a.questionId = qo.questionId
+            //                 END
+            //             ";
+            QuestionViewModel question = conn.QueryFirstOrDefault<QuestionViewModel>(sql,new{userId,questionId});
+            if(question == null) return new QuestionViewModel();
+            if(question.typeId == 2){
+                string optionSql = $@"
+                                    SELECT optionContent, optionPicture
+                                    FROM [Option]
+                                    WHERE questionId = @questionId AND isDelete = 0
+                                ";
+                question.options = (List<OptionDto>)conn.Query<OptionDto>(optionSql,new{question.questionId});
+            }
+            return question;
+        }
+        #endregion
+        #region 修改題目
+        public QuestionViewModel UpdateQuestion(QuestionViewModel updateData){
+            using var conn = new SqlConnection(cnstr);
+            string sql = $@"
+                            UPDATE Question
+                            SET questionContent = @questionContent,
+                                questionPicture = @questionPicture,
+                                questionLevel = @questionLevel
+                            WHERE questionId = @questionId
 
+                            UPDATE Answer
+                            SET answerContent = @answerContent,
+                                parse = @parse
+                            WHERE questionId = @questionId
+
+                            SELECT optionId FROM [Option] WHERE questionId = @questionId 
+                        ";
+            List<int> optionIds = (List<int>)conn.Query<int>(sql,updateData);
+            if(updateData.typeId == 2 && updateData.options != null){
+                foreach(int optionId in optionIds){
+                    sql = $@"
+                            UPDATE [Option]
+                            SET optionContent = @optionContent,
+                                optionPicture = @optionPicture
+                            WHERE optionId = @optionId
+                        ";
+                    conn.Execute(sql,new{updateData.options[optionIds.IndexOf(optionId)].optionContent,updateData.options[optionIds.IndexOf(optionId)].optionPicture,optionId});
+                }
+            }
+            return GetQuestionViewModelById(updateData.userId,updateData.questionId);
+        }
+        #endregion
         #region 檔案匯入
         public DataTable FileDataPrecess(IFormFile file){
             // 上傳的文件

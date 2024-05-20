@@ -23,7 +23,7 @@ namespace BrainBoost_V2.Controller
         #region 註冊
         // 註冊 
         [HttpPost("[Action]")]
-        public IActionResult Register([FromBody]UserRegister RegisterData)
+        public IActionResult Register([FromForm]UserRegister RegisterData)
         {
             if (ModelState.IsValid)
             {
@@ -38,12 +38,21 @@ namespace BrainBoost_V2.Controller
                 User User = new()
                 {
                     userName = RegisterData.userName,
-                    userPhoto = wwwroot + "default.jpg",
                     userAccount = RegisterData.userAccount,
                     userEmail = RegisterData.userEmail,
                     userPassword = UserService.HashPassword(RegisterData.userPassword),
                     userAuthCode = MailService.GenerateAuthCode()
                 };
+                if(RegisterData.userPhoto != null ){
+                    var imgname = RegisterData.userAccount + ".jpg";
+                    var img_path = wwwroot + imgname;
+                    using var stream = System.IO.File.Create(img_path);
+                    RegisterData.userPhoto.CopyTo(stream);
+                    User.userPhoto = img_path;
+                }
+                else{
+                    User.userPhoto = wwwroot + "default.jpg";
+                }
 
                 var path = Directory.GetCurrentDirectory() + "/Verificationletter/RegisterTempMail.html";
                 string TempMail = System.IO.File.ReadAllText(path);
@@ -138,7 +147,7 @@ namespace BrainBoost_V2.Controller
                 };
                 //處理圖片
                 var wwwroot = evn.ContentRootPath + @"\wwwroot\images\";
-                if(Data.file.Length > 0){
+                if(Data.file != null){
                     var imgname = User.Identity.Name + ".jpg";
                     var img_path = wwwroot + imgname;
                     using var stream = System.IO.File.Create(img_path);
@@ -184,11 +193,29 @@ namespace BrainBoost_V2.Controller
                 data = data
             });
         }
-
+        [HttpGet]
+        [Route("MySelf")]
+        public IActionResult MySelf(){
+            try{
+                if(User.Identity.Name == null) return BadRequest(new Response{status_code = 400,message = "請先登入"});
+                User data = UserService.GetDataByAccount(User.Identity.Name);
+                data.userPassword = string.Empty;
+                return Ok(new Response(){
+                    status_code = 200,
+                    message = "讀取成功",
+                    data = data
+                });
+            }
+            catch (Exception e){
+                return BadRequest(new Response(){
+                    status_code = 400,
+                    message = e.Message
+                });
+            }
+        }
         // 取得單一使用者(帳號)
         // 未來可加任課科目&上課科目
         [HttpGet]
-        [Route("User")]
         public IActionResult UserByAcc([FromQuery]string account){
             try{
                 User data = UserService.GetDataByAccount(account);

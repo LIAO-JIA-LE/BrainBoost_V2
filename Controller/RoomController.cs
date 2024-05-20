@@ -22,6 +22,7 @@ namespace BrainBoost_V2.Controller
         [Route("")]
         public IActionResult InsertRoom([FromBody]InsertRoom roomData){
             try{
+                //班級防呆、搶答室名稱防呆
                 roomData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
                 var Response = roomData;
                 int roomId = RoomService.InsertRoom(roomData);
