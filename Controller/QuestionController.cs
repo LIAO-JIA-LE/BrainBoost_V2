@@ -96,16 +96,19 @@ namespace BrainBoost_V2.Controller
                     // 選項陣列處理
                     List<Option> options = QuestionService.GetQuestionOptionByqId(questionViewModel.questionId);
                     // 處理圖片
-                    var wwwroot = evn.ContentRootPath + @"\wwwroot\images\";
+                    var wwwroot = evn.ContentRootPath + @"\wwwroot\images\option\" + UpdateData.questionId.ToString() + "\\";
+                    if (!Directory.Exists(wwwroot))
+                        Directory.CreateDirectory(wwwroot);
+                    
                     if( UpdateData.typeId == 2 && UpdateData.optionPicture != null ){
                         int i = 0;
                         foreach(var optionPicture in UpdateData.optionPicture){
-                            i++;
-                            var imgname = UpdateData.questionId.ToString() + options[i].ToString() + ".jpg";//
+                            var imgname = options[i].optionId.ToString() + ".jpg";//
                             var img_path = wwwroot + imgname;
                             using var stream = System.IO.File.Create(img_path);
                             optionPicture.CopyTo(stream);
                             questionViewModel.options.Add(new(){optionContent = UpdateData.optionContent[i],optionPicture = img_path});
+                            i++;
                         }
                     }
                     else
