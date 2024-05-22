@@ -65,8 +65,10 @@ namespace BrainBoost_V2.Service
                 for(int i = 0; i < 4; i++)
                 {
                     //新增判斷是否為答案
-                    stringBuilder.Append($@"INSERT INTO ""Option""(questionId, optionContent, optionPicture, isAnswer)   
-                                            VALUES('{questionId}', '{getQuestion.options[i]}', '{getQuestion.optionImg[i]}','{getQuestion.options[i] == getQuestion.answerData.answerContent}')");
+                    // stringBuilder.Append($@"INSERT INTO ""Option""(questionId, optionContent, optionPicture, isAnswer)   
+                    //                         VALUES('{questionId}', '{getQuestion.options[i]}', '{getQuestion.optionImg[i]}','{getQuestion.options[i] == getQuestion.answerData.answerContent}')");
+                    stringBuilder.Append($@"INSERT INTO ""Option""(questionId, optionContent, isAnswer)   
+                                            VALUES('{questionId}', '{getQuestion.options[i]}','{getQuestion.options[i] == getQuestion.answerData.answerContent}')");
                 }
             }
             
@@ -189,201 +191,201 @@ namespace BrainBoost_V2.Service
 
         #endregion
 
-        // #region 檔案匯入
-        // public DataTable FileDataPrecess(IFormFile file){
-        //     Stream stream = file.OpenReadStream();
-        //     DataTable dataTable = new DataTable();
-        //     IWorkbook wb;
-        //     ISheet sheet;
-        //     IRow headerRow;
-        //     int cellCount;
-        //     string outputFolder = "../wwwroot/QuestionPicture/";
+        #region 檔案匯入
+        public DataTable FileDataPrecess(IFormFile file){
+            Stream stream = file.OpenReadStream();
+            DataTable dataTable = new DataTable();
+            IWorkbook wb;
+            ISheet sheet;
+            IRow headerRow;
+            int cellCount;
+            // string outputFolder = "../wwwroot/QuestionPicture/";
 
-        //     wb = new XSSFWorkbook(stream);
-        //     sheet = wb.GetSheetAt(0);
-        //     headerRow = sheet.GetRow(0);
-        //     cellCount = headerRow.LastCellNum;
+            wb = new XSSFWorkbook(stream);
+            sheet = wb.GetSheetAt(0);
+            headerRow = sheet.GetRow(0);
+            cellCount = headerRow.LastCellNum;
 
-        //     for (int i = headerRow.FirstCellNum; i < cellCount; i++)
-        //         dataTable.Columns.Add(new DataColumn(headerRow.GetCell(i).StringCellValue));
+            for (int i = headerRow.FirstCellNum; i < cellCount; i++)
+                dataTable.Columns.Add(new DataColumn(headerRow.GetCell(i).StringCellValue));
 
-        //     try{
-        //         for (int i = sheet.FirstRowNum + 1; i <= sheet.LastRowNum; i++)
-        //         {
-        //             IRow row = sheet.GetRow(i);
-        //             if (string.IsNullOrEmpty(row.Cells[0].ToString().Trim())) break;
-        //             DataRow dataRow = dataTable.NewRow();
-        //             int column = 1;
-        //             for (int j = row.FirstCellNum; j < cellCount; j++)
-        //             {
+            try{
+                for (int i = sheet.FirstRowNum + 1; i <= sheet.LastRowNum; i++)
+                {
+                    IRow row = sheet.GetRow(i);
+                    if (string.IsNullOrEmpty(row.Cells[0].ToString().Trim())) break;
+                    DataRow dataRow = dataTable.NewRow();
+                    int column = 1;
+                    for (int j = row.FirstCellNum; j < cellCount; j++)
+                    {
                     
-        //                 try
-        //                 {
-        //                     ICell cell;
-        //                     column = j + 1;
-        //                     cell = row.GetCell(j);
+                        try
+                        {
+                            ICell cell;
+                            column = j + 1;
+                            cell = row.GetCell(j);
 
-        //                     // 剩下的資料
-        //                     switch (cell.CellType)
-        //                     {
-        //                         // 字串
-        //                         case CellType.String:
-        //                             if (cell.StringCellValue != null)
-        //                                 // 設定dataRow第j欄位的值，cell以字串型態取值
-        //                                 dataRow[j] = cell.StringCellValue;
-        //                             else
-        //                                 dataRow[j] = "";
-        //                             break;
+                            // 剩下的資料
+                            switch (cell.CellType)
+                            {
+                                // 字串
+                                case CellType.String:
+                                    if (cell.StringCellValue != null)
+                                        // 設定dataRow第j欄位的值，cell以字串型態取值
+                                        dataRow[j] = cell.StringCellValue;
+                                    else
+                                        dataRow[j] = "";
+                                    break;
 
-        //                         // 數字
-        //                         case CellType.Numeric:
-        //                             // 日期
-        //                             if (HSSFDateUtil.IsCellDateFormatted(cell))
-        //                                 // 設定dataRow第j欄位的值，cell以日期格式取值
-        //                                 dataRow[j] = DateTime.FromOADate(cell.NumericCellValue).ToString("yyyy/MM/dd HH:mm");
-        //                             else
-        //                                 // 非日期格式
-        //                                 dataRow[j] = cell.NumericCellValue;
-        //                             break;
+                                // 數字
+                                case CellType.Numeric:
+                                    // 日期
+                                    if (HSSFDateUtil.IsCellDateFormatted(cell))
+                                        // 設定dataRow第j欄位的值，cell以日期格式取值
+                                        dataRow[j] = DateTime.FromOADate(cell.NumericCellValue).ToString("yyyy/MM/dd HH:mm");
+                                    else
+                                        // 非日期格式
+                                        dataRow[j] = cell.NumericCellValue;
+                                    break;
 
-        //                         // 布林值
-        //                         case CellType.Boolean:
-        //                             // 設定dataRow第j欄位的值，cell以布林型態取值
-        //                             dataRow[j] = cell.BooleanCellValue;
-        //                             break;
+                                // 布林值
+                                case CellType.Boolean:
+                                    // 設定dataRow第j欄位的值，cell以布林型態取值
+                                    dataRow[j] = cell.BooleanCellValue;
+                                    break;
 
-        //                         //空值
-        //                         case CellType.Blank:
-        //                             dataRow[j] = "";
-        //                             break;
+                                //空值
+                                case CellType.Blank:
+                                    dataRow[j] = "";
+                                    break;
 
-        //                         // 預設
-        //                         default:
-        //                             dataRow[j] = cell.StringCellValue;
-        //                             break;
-        //                     }
+                                // 預設
+                                default:
+                                    dataRow[j] = cell.StringCellValue;
+                                    break;
+                            }
 
-        //                     // // 如果是圖片儲存格，保存圖片
-        //                     // XSSFDrawing drawing = (XSSFDrawing)sheet.CreateDrawingPatriarch();
-        //                     // foreach (XSSFShape shape in drawing.GetShapes().ToList())
-        //                     // {
-        //                     //     if (shape is XSSFPicture)
-        //                     //     {
-        //                     //         XSSFPicture picture = (XSSFPicture)shape;
-        //                     //         int rowIndex = picture.GetPreferredSize().Row1;
-        //                     //         int colIndex = picture.GetPreferredSize().Col1;
+                            // // 如果是圖片儲存格，保存圖片
+                            // XSSFDrawing drawing = (XSSFDrawing)sheet.CreateDrawingPatriarch();
+                            // foreach (XSSFShape shape in drawing.GetShapes().ToList())
+                            // {
+                            //     if (shape is XSSFPicture)
+                            //     {
+                            //         XSSFPicture picture = (XSSFPicture)shape;
+                            //         int rowIndex = picture.GetPreferredSize().Row1;
+                            //         int colIndex = picture.GetPreferredSize().Col1;
 
-        //                     //         string imageFormat = picture.PictureData.MimeType switch
-        //                     //         {
-        //                     //             "image/jpeg" => "jpeg",
-        //                     //             "image/png" => "png",
-        //                     //             "image/gif" => "gif",
-        //                     //             "image/bmp" => "bmp",
-        //                     //             _ => "jpg"
-        //                     //         };
+                            //         string imageFormat = picture.PictureData.MimeType switch
+                            //         {
+                            //             "image/jpeg" => "jpeg",
+                            //             "image/png" => "png",
+                            //             "image/gif" => "gif",
+                            //             "image/bmp" => "bmp",
+                            //             _ => "jpg"
+                            //         };
                                                                 
-        //                     //         string fileName = $"{rowIndex}-{colIndex}-{Guid.NewGuid()}.{imageFormat}";
-        //                     //         string filePath = Path.Combine(outputFolder, fileName);
+                            //         string fileName = $"{rowIndex}-{colIndex}-{Guid.NewGuid()}.{imageFormat}";
+                            //         string filePath = Path.Combine(outputFolder, fileName);
 
-        //                     //         using (FileStream imageFile = new FileStream(filePath, FileMode.Create))
-        //                     //         {
-        //                     //             imageFile.Write(picture.PictureData.Data, 0, picture.PictureData.Data.Length);
-        //                     //         }
+                            //         using (FileStream imageFile = new FileStream(filePath, FileMode.Create))
+                            //         {
+                            //             imageFile.Write(picture.PictureData.Data, 0, picture.PictureData.Data.Length);
+                            //         }
 
-        //                     //         dataRow[j] = fileName;
-        //                     //     }
-        //                     // }
-        //                 }
-        //                 catch (Exception e)
-        //                 {
-        //                     throw new Exception("第 " + i + "列，資料格式有誤:\r\r" + e.ToString());
-        //                 }
+                            //         dataRow[j] = fileName;
+                            //     }
+                            // }
+                        }
+                        catch (Exception e)
+                        {
+                            throw new Exception("第 " + i + "列，資料格式有誤:\r\r" + e.ToString());
+                        }
+                    }
+                    dataTable.Rows.Add(dataRow);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.ToString());
+            }
+            finally
+            {
+                stream.Close();
+                stream.Dispose();
+            }
+            return dataTable;
+        }
+        #endregion
+
+        // static public void fnReadImageXSSF(ISheet sheet, string _sDirImg)
+        // {
+        //     // 读取图像信息
+        //     foreach (XSSFShape shape in ((XSSFDrawing)sheet.DrawingPatriarch).GetShapes())
+        //     {
+        //         if (shape is XSSFPicture)
+        //         {
+        //             XSSFPicture picture = (XSSFPicture)shape;
+        
+        //             // 获取图片所在单元格的行号和列号
+        //             int rowIndex = picture.GetPreferredSize().Row1;
+        //             int colIndex = picture.GetPreferredSize().Col1;
+        
+        //             // 获取图像文件格式
+        //             string imageFormat = picture.PictureData.MimeType switch
+        //             {
+        //                 "image/jpeg" => "jpeg",
+        //                 "image/png" => "png",
+        //                 "image/gif" => "gif",
+        //                 "image/bmp" => "bmp",
+        //                 _ => "jpg"
+        //             };
+        
+        //             // 保存图像文件
+        //             string outputFileName = _sDirImg + $"{rowIndex}-{colIndex}-{Guid.NewGuid()}.{imageFormat}";
+        //             using (FileStream imageFile = new FileStream(outputFileName, FileMode.Create))
+        //             {
+        //                 imageFile.Write(picture.PictureData.Data, 0, picture.PictureData.Data.Length);
         //             }
-        //             dataTable.Rows.Add(dataRow);
+        
+        //             Console.WriteLine($"Saved image: {outputFileName}");
+        //         }
+            
+        //     }
+        // }
+
+        // static public void fnReadImageHSSF(ISheet sheet, string _sDirImg)
+        // {
+        //     // 读取图像信息
+        //     foreach (HSSFShape shape in ((HSSFPatriarch)sheet.DrawingPatriarch).Children)
+        //     {
+        //         if (shape is HSSFPicture)
+        //         {
+        //             HSSFPicture picture = (HSSFPicture)shape;
+        
+        //             // 获取图片所在单元格的行号和列号
+        //             int rowIndex = picture.GetPreferredSize().Row1;
+        //             int colIndex = picture.GetPreferredSize().Col1;
+        
+        //             // 获取图像文件格式
+        //             string imageFormat = picture.PictureData.MimeType switch
+        //             {
+        //                 "image/jpeg" => "jpeg",
+        //                 "image/png" => "png",
+        //                 "image/gif" => "gif",
+        //                 "image/bmp" => "bmp",
+        //                 _ => "jpg"
+        //             };
+        
+        //             // 保存图像文件
+        //             string outputFileName = _sDirImg + $"{rowIndex}-{colIndex}-{Guid.NewGuid()}.{imageFormat}";
+        //             using (FileStream imageFile = new FileStream(outputFileName, FileMode.Create))
+        //             {
+        //                 imageFile.Write(picture.PictureData.Data, 0, picture.PictureData.Data.Length);
+        //             }
+        
+        //             Console.WriteLine($"Saved image: {outputFileName}");
         //         }
         //     }
-        //     catch (Exception e)
-        //     {
-        //         throw new Exception(e.ToString());
-        //     }
-        //     finally
-        //     {
-        //         stream.Close();
-        //         stream.Dispose();
-        //     }
-        //     return dataTable;
         // }
-        // #endregion
-
-        static public void fnReadImageXSSF(ISheet sheet, string _sDirImg)
-        {
-            // 读取图像信息
-            foreach (XSSFShape shape in ((XSSFDrawing)sheet.DrawingPatriarch).GetShapes())
-            {
-                if (shape is XSSFPicture)
-                {
-                    XSSFPicture picture = (XSSFPicture)shape;
-        
-                    // 获取图片所在单元格的行号和列号
-                    int rowIndex = picture.GetPreferredSize().Row1;
-                    int colIndex = picture.GetPreferredSize().Col1;
-        
-                    // 获取图像文件格式
-                    string imageFormat = picture.PictureData.MimeType switch
-                    {
-                        "image/jpeg" => "jpeg",
-                        "image/png" => "png",
-                        "image/gif" => "gif",
-                        "image/bmp" => "bmp",
-                        _ => "jpg"
-                    };
-        
-                    // 保存图像文件
-                    string outputFileName = _sDirImg + $"{rowIndex}-{colIndex}-{Guid.NewGuid()}.{imageFormat}";
-                    using (FileStream imageFile = new FileStream(outputFileName, FileMode.Create))
-                    {
-                        imageFile.Write(picture.PictureData.Data, 0, picture.PictureData.Data.Length);
-                    }
-        
-                    Console.WriteLine($"Saved image: {outputFileName}");
-                }
-            
-            }
-        }
-
-        static public void fnReadImageHSSF(ISheet sheet, string _sDirImg)
-        {
-            // 读取图像信息
-            foreach (HSSFShape shape in ((HSSFPatriarch)sheet.DrawingPatriarch).Children)
-            {
-                if (shape is HSSFPicture)
-                {
-                    HSSFPicture picture = (HSSFPicture)shape;
-        
-                    // 获取图片所在单元格的行号和列号
-                    int rowIndex = picture.GetPreferredSize().Row1;
-                    int colIndex = picture.GetPreferredSize().Col1;
-        
-                    // 获取图像文件格式
-                    string imageFormat = picture.PictureData.MimeType switch
-                    {
-                        "image/jpeg" => "jpeg",
-                        "image/png" => "png",
-                        "image/gif" => "gif",
-                        "image/bmp" => "bmp",
-                        _ => "jpg"
-                    };
-        
-                    // 保存图像文件
-                    string outputFileName = _sDirImg + $"{rowIndex}-{colIndex}-{Guid.NewGuid()}.{imageFormat}";
-                    using (FileStream imageFile = new FileStream(outputFileName, FileMode.Create))
-                    {
-                        imageFile.Write(picture.PictureData.Data, 0, picture.PictureData.Data.Length);
-                    }
-        
-                    Console.WriteLine($"Saved image: {outputFileName}");
-                }
-            }
-        }
     }
 }
