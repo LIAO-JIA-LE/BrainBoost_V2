@@ -309,7 +309,7 @@ namespace BrainBoost_V2.Controller
             if (User.IsInRole("ForgetPassword"))
             {
                 User user = UserService.GetDataByEmail(Data.Email);
-                if(User.Identity.Name != user.userAccount || user == null)
+                if(User.Identity == null || User.Identity.Name != user.userAccount || user == null)
                     return BadRequest(new Response(){status_code = 400, message = "電子郵件不符，請重新輸入"});
                 UserService.ClearAuthCode(Data.Email);
                 UserService.ChangePasswordByForget(Data);
