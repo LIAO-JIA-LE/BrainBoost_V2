@@ -13,6 +13,8 @@ namespace BrainBoost_V2.ViewModels
         
         public List<string> options { get; set; }
 
+        public List<string>? optionImg { get; set; }
+
         public Answer answerData { get; set; } = new();
 
         public Tag tagData{ get; set; } = new();

@@ -13,6 +13,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// 限制檔案大小
+builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 50 * 1024 * 1024);
+
 builder.Services.AddSingleton<JwtHelpers>();
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -20,7 +23,7 @@ builder.Services
     {
         // 當驗證失敗時，回應標頭會包含 WWW-Authenticate 標頭，這裡會顯示失敗的詳細錯誤原因
         options.IncludeErrorDetails = true; // 預設值為 true，有時會特別關閉
-
+    
         options.TokenValidationParameters = new TokenValidationParameters
         {
             // 透過這項宣告，就可以從 "sub" 取值並設定給 User.Identity.Name
@@ -54,14 +57,13 @@ builder.Host.ConfigureServices((hostContext,services)=>{
     services.AddScoped<QuestionService>();
     services.AddScoped<MailService>();
     services.AddScoped<RoomService>();
-    // services.AddScoped<RaceRepository>();
-    // services.AddScoped<ImportRepository>();
     services.AddScoped<Forpaging>();
     services.AddScoped<RoleService>();
     services.AddScoped<SubjectService>();
     services.AddScoped<ClassService>();
     services.AddScoped<GuestService>();
     services.AddScoped<TagService>();
+    services.Configure<IISServerOptions>(options => options.MaxRequestBodySize = int.MaxValue);
 });
 
 var app = builder.Build();

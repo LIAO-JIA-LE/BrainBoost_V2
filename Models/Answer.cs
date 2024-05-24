@@ -10,6 +10,6 @@ namespace BrainBoost_V2.Models
         public int answerId{get;set;}
         public int questionId{get;set;}
         public string answerContent{get;set;}
-        public string parse{get;set;}
+        public string? parse{get;set;}
     }
 }

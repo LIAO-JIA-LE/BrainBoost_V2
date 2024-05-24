@@ -11,7 +11,7 @@ namespace BrainBoost_V2.Models
         public int userId{get;set;}
         public int typeId{get;set;}
         public string questionContent{get;set;}
-        public string questionPicture{get;set;}
+        public string? questionPicture{get;set;}
         public int questionLevel{get;set;}
         public bool isDelete{get;set;}
     }
