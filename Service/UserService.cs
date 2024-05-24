@@ -183,12 +183,10 @@ namespace BrainBoost_V2.Service
         public void ChangePasswordByForget(CheckForgetPassword Data){
             User user = GetDataByEmail(Data.Email);
             user.userPassword = HashPassword(Data.NewPassword);
-            string sql = $@"UPDATE ""User"" SET userPassword = '{user.userPassword}' WHERE userEmail = '{Data.Email}';
-                            DECLARE @userId int;
-                            SELECT @userId = userId FROM User WHERE userEmail = '{Data.Email}'
+            string sql = $@"UPDATE ""User"" SET userPassword = @userPassword WHERE userEmail = @userEmail;
                             UPDATE UserRole SET roleId -= 4 WHERE userId = @userId";
-            using (var conn = new SqlConnection(cnstr))
-            conn.Execute(sql,new{user.userId});
+            using var conn = new SqlConnection(cnstr);
+            conn.Execute(sql,user);
         }
         
         // 用mail獲得資料

@@ -215,23 +215,23 @@ namespace BrainBoost_V2.Controller
         }
         // 取得單一使用者(帳號)
         // 未來可加任課科目&上課科目
-        [HttpGet]
-        public IActionResult UserByAcc([FromQuery]string account){
-            try{
-                User data = UserService.GetDataByAccount(account);
-                data.userPassword = string.Empty;
-                return Ok(new Response(){
-                    status_code = 200,
-                    data = data
-                });
-            }
-            catch (Exception e){
-                return BadRequest(new Response(){
-                    status_code = 400,
-                    message = e.Message
-                });
-            }
-        }
+        // [HttpGet]
+        // public IActionResult UserByAcc([FromQuery]string account){
+        //     try{
+        //         User data = UserService.GetDataByAccount(account);
+        //         data.userPassword = string.Empty;
+        //         return Ok(new Response(){
+        //             status_code = 200,
+        //             data = data
+        //         });
+        //     }
+        //     catch (Exception e){
+        //         return BadRequest(new Response(){
+        //             status_code = 400,
+        //             message = e.Message
+        //         });
+        //     }
+        // }
         #endregion
 
         #region 忘記密碼
@@ -309,7 +309,7 @@ namespace BrainBoost_V2.Controller
             if (User.IsInRole("ForgetPassword"))
             {
                 User user = UserService.GetDataByEmail(Data.Email);
-                if(User.Identity.Name != user.userAccount || user == null)
+                if(User.Identity == null || User.Identity.Name != user.userAccount || user == null)
                     return BadRequest(new Response(){status_code = 400, message = "電子郵件不符，請重新輸入"});
                 UserService.ClearAuthCode(Data.Email);
                 UserService.ChangePasswordByForget(Data);

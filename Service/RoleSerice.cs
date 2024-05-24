@@ -22,13 +22,13 @@ namespace BrainBoost_V2.Service
             return data;
         }
         //修改使用者權限(帳號)
-        public void UpdateMemberRole(int member_id,int role){
-            string sql = $@"UPDATE Member_Role SET role_id = {role} WHERE member_id = {member_id}";
+        public void UpdateMemberRole(int userId,int role){
+            string sql = $@"UPDATE UserRole SET roleId = {role} WHERE userId = {userId}";
             using var conn = new SqlConnection(cnstr);
             conn.Execute(sql);
         }
-        public void SetMemberRole_ForgetPassword(int member_id){
-            string sql = $@"UPDATE Member_Role SET role_id += 4 WHERE member_id = {member_id}";
+        public void SetMemberRole_ForgetPassword(int userId){
+            string sql = $@"UPDATE UserRole SET roleId += 4 WHERE userId = {userId}";
             using var conn = new SqlConnection(cnstr);
             conn.Execute(sql);
         }
