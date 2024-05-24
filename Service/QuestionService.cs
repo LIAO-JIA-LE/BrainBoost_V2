@@ -9,6 +9,7 @@ using BrainBoost_V2.ViewModels;
 using BrainBoost_V2.Models;
 using back.ViewModels;
 using Microsoft.AspNetCore.Http.HttpResults;
+using static BrainBoost_V2.Controller.QuestionController;
 
 namespace BrainBoost_V2.Service
 {
@@ -112,7 +113,34 @@ namespace BrainBoost_V2.Service
         #endregion
 
         #region 題目列表（只顯示題目內容，不包含選項）
-        // 全部的題目(篩選)
+        // 新增搶答室的題目列表(篩選)
+        public List<Question> GetQuestionList(searchQuestion searchQuestion){
+            string sql = $@"
+                            SELECT Q.questionId,Q.questionContent,Q.typeId,Q.questionLevel,T.tagContent,S.subjectContent FROM Question Q
+                            JOIN TagQuestion TQ ON Q.questionId = TQ.questionId
+                            JOIN Tag T ON TQ.tagId = T.tagId
+                            JOIN SubjectTag ST ON ST.tagId = T.tagId
+                            JOIN [Subject] S ON S.subjectId = ST.subjectId
+                            WHERE Q.userId = @userId AND Q.isDelete = 0 AND 1=1
+                            ORDER BY Q.typeId,S.subjectContent,T.tagContent,Q.questionLevel
+                        ";
+            if(searchQuestion.subjectId != 0 && searchQuestion.subjectId != null)
+                sql = sql.Replace("1=1", $"1=1 AND S.subjectId = @subjectId");
+            if(searchQuestion.typeId != 0 && searchQuestion.typeId != null)
+                sql = sql.Replace("1=1", $"1=1 AND Q.typeId = @typeId");
+            if(searchQuestion.tagId != 0 && searchQuestion.tagId != null)
+                sql = sql.Replace("1=1", $"1=1 AND T.tagId = @tagId");
+            if(searchQuestion.questionLevel != 0 && searchQuestion.questionLevel != null)
+                sql = sql.Replace("1=1", $"1=1 AND Q.questionLevel = @questionLevel");
+            if(!string.IsNullOrEmpty(searchQuestion.search))
+                sql = sql.Replace("1=1", $"1=1 AND Q.questionContent LIKE '%{searchQuestion.search}%'");
+            using var conn = new SqlConnection(cnstr);
+            return (List<Question>)conn.Query<Question>(sql,searchQuestion);
+            
+        }
+        #endregion
+        #region 題目列表（只顯示題目內容，不包含選項）
+        // 全部的題目(篩選、分頁)
         public List<Question> GetQuestionList(int userId,int type, string search,Forpaging forpaging){
             List<Question> questionList;
             if(!String.IsNullOrEmpty(search)){

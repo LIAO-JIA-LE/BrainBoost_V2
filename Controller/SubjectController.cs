@@ -77,10 +77,9 @@ namespace BrainBoost_V2.Controller
         // 新增科目
         [HttpPost]
         public IActionResult InsertSubject([FromBody]InsertSubject insertData){
-            insertData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
             Response result;
             try{
-                
+                insertData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
                 result = new(){
                     status_code = 200,
                     message = "新增成功",

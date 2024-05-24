@@ -51,7 +51,7 @@ namespace BrainBoost_V2.Controller
         // 獲得全部問題
         [HttpGet]
         [Route("AllQuestion")]
-        public IActionResult AllQuestion([FromQuery]string search,[FromQuery]int type = 0,[FromQuery]int page = 1){
+        public IActionResult AllQuestion([FromQuery]string search,[FromQuery]searchQuestion searchQuestion,[FromQuery]int type = 0,[FromQuery]int page = 1){
             AllQuestionViewModel data = new(){
                 forpaging = new Forpaging(page),
                 search = search
@@ -69,6 +69,33 @@ namespace BrainBoost_V2.Controller
                 message = "讀取成功",
                 data = data
             });
+        }
+
+        //新增搶答室的題庫列表
+        public class searchQuestion{
+            public int? userId { get; set; }
+            public string? search{ get; set; }
+            public int? typeId{ get; set; }
+            public int? questionLevel{ get; set; }
+            public int? tagId{ get; set; }
+            public int? subjectId{ get; set; }
+        }
+        [HttpGet]
+        [Route("QuestionList")]
+        public IActionResult QuestionList([FromQuery]searchQuestion searchQuestion){
+            try
+            {
+                if(User.Identity.Name == null) return BadRequest(new Response{status_code = 400, message = "請先登入"});
+                if(searchQuestion == null)  return BadRequest(new Response{status_code = 400, message = "請輸入篩選內容"});
+                searchQuestion.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                List<Question> questionList = QuestionService.GetQuestionList(searchQuestion);
+                if(questionList == null) return Ok(new Response{status_code = 204, message = "查無資料", data = questionList});
+                return Ok(new Response{status_code = 200, message = "讀取成功", data = questionList});
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response{status_code = 400 , message = e.Message});
+            }
         }
         #endregion
         #region 修改題目

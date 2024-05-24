@@ -314,7 +314,7 @@ namespace BrainBoost_V2.Controller
                 UserService.ClearAuthCode(Data.Email);
                 UserService.ChangePasswordByForget(Data);
                 return Ok(new Response(){
-                    status_code = 200,
+                    status_code = 200,  
                     message = "修改密碼成功！請再次登入！"
                 });
             }
