@@ -1,14 +1,16 @@
-using BrainBoost.Parameter;
-using BrainBoost_V2.Models;
-using BrainBoost_V2.Parameter;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using BrainBoost_V2.Service;
-using BrainBoost_V2.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace BrainBoost_V2.Controller
 {
-    [Route("[controller]")]
-    public class TagController : ControllerBase
+    [Route("BrainBoost/[controller]")]
+    public class TagController(TagService _tagService) : ControllerBase
     {
         
     }

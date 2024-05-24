@@ -8,7 +8,7 @@ namespace BrainBoost_V2.Parameter
     public class UpdateUser
     {
         public string userName { get; set; }
-        public IFormFile file{ get; set; }
+        public IFormFile? file{ get; set; }
         public string userPhoto ;
         public int userId ;
     }
