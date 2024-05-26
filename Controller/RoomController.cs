@@ -24,7 +24,6 @@ namespace BrainBoost_V2.Controller
             try{
                 //班級防呆、搶答室名稱防呆
                 roomData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-                var Response = roomData;
                 int roomId = RoomService.InsertRoom(roomData);
                 RoomClassViewModel room = RoomService.GetRoom(roomId,roomData.userId);
                 return Ok(new Response{
@@ -38,7 +37,8 @@ namespace BrainBoost_V2.Controller
             {
                 return BadRequest(new Response{
                         status_code = 400,
-                        message = e.Message
+                        message = e.Message,
+                        data = roomData
                     });
             }
         }

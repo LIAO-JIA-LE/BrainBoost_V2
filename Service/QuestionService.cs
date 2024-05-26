@@ -128,15 +128,15 @@ namespace BrainBoost_V2.Service
                             ORDER BY Q.typeId,S.subjectContent,T.tagContent,Q.questionLevel
                         ";
             if(searchQuestion.subjectId != 0 && searchQuestion.subjectId != null)
-                sql = sql.Replace("1=1", $"1=1 AND S.subjectId = @subjectId");
+                sql = sql.Replace("1=1", $"1=1 AND S.subjectId = @subjectId ");
             if(searchQuestion.typeId != 0 && searchQuestion.typeId != null)
-                sql = sql.Replace("1=1", $"1=1 AND Q.typeId = @typeId");
+                sql = sql.Replace("1=1", $"1=1 AND Q.typeId = @typeId ");
             if(searchQuestion.tagId != 0 && searchQuestion.tagId != null)
-                sql = sql.Replace("1=1", $"1=1 AND T.tagId = @tagId");
+                sql = sql.Replace("1=1", $"1=1 AND T.tagId = @tagId ");
             if(searchQuestion.questionLevel != 0 && searchQuestion.questionLevel != null)
-                sql = sql.Replace("1=1", $"1=1 AND Q.questionLevel = @questionLevel");
+                sql = sql.Replace("1=1", $"1=1 AND Q.questionLevel = @questionLevel ");
             if(!string.IsNullOrEmpty(searchQuestion.search))
-                sql = sql.Replace("1=1", $"1=1 AND Q.questionContent LIKE '%{searchQuestion.search}%'");
+                sql = sql.Replace("1=1", $"1=1 AND Q.questionContent LIKE '%{searchQuestion.search}%' ");
             using var conn = new SqlConnection(cnstr);
             return (List<Question>)conn.Query<Question>(sql,searchQuestion);
             

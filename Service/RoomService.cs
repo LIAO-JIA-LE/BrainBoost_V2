@@ -255,7 +255,7 @@ namespace BrainBoost_V2.Service
                             FROM Room r
                             JOIN ""Class"" c
                             ON r.classId = c.classId
-                            WHERE r.userId = @userId AND r.isDelete = 0 AND c.isDelete = 0
+                            WHERE r.userId = @userId AND r.isDelete = 0 AND c.isDelete = 0 AND r.roomId = @roomId
                             ";
             using var conn = new SqlConnection(cnstr);
             return conn.QueryFirstOrDefault<RoomClassViewModel>(sql, new { roomId, userId });
