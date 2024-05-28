@@ -16,30 +16,36 @@ namespace BrainBoost_V2.Controller
         readonly SubjectService SubjectService = _subjectService;
         readonly QuestionService QuestionService = _questionService;
         readonly UserService UserService = _userService;
-        
+
         #endregion
 
         #region 是非題 手動匯入
 
         [HttpPost("[Action]")]
-        public IActionResult TrueOrFalse([FromQuery]int subjectId, [FromBody]TureorFalse question){
+        public IActionResult TrueOrFalse([FromQuery] int subjectId, [FromBody] TureorFalse question)
+        {
             GetQuestion getQuestion = new();
             getQuestion.tagData.tagContent = question.tagContent;
             // 使用者防呆
             int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-            if(SubjectService.GetSubject(userId,subjectId) == null)
-                return BadRequest(new Response{ status_code = 400,
-                                                message = "您非此科目擁有者"});
+            if (SubjectService.GetSubject(userId, subjectId) == null)
+                return BadRequest(new Response
+                {
+                    status_code = 400,
+                    message = "您非此科目擁有者"
+                });
             getQuestion.subjectData.subjectId = subjectId;
             // 題目敘述
-            getQuestion.questionData = new Question(){
+            getQuestion.questionData = new Question()
+            {
                 typeId = 1,
                 questionLevel = question.questionLevel,
                 questionContent = question.questionContent
             };
 
             // 題目答案
-            getQuestion.answerData = new Answer(){
+            getQuestion.answerData = new Answer()
+            {
                 answerContent = question.isAnswer ? "是" : "否",
                 parse = question.parse
             };
@@ -52,12 +58,14 @@ namespace BrainBoost_V2.Controller
             }
             catch (Exception e)
             {
-                return BadRequest(new Response(){
-                        status_code = 400,
-                        message = $"發生錯誤:  {e}"
-                    });
+                return BadRequest(new Response()
+                {
+                    status_code = 400,
+                    message = $"發生錯誤:  {e}"
+                });
             }
-            return Ok(new Response(){
+            return Ok(new Response()
+            {
                 status_code = 200,
                 message = "新增是非題成功",
                 data = getQuestion
@@ -69,12 +77,14 @@ namespace BrainBoost_V2.Controller
         #region 選擇題 手動匯入
 
         [HttpPost("[Action]")]
-        public IActionResult MultipleChoice([FromQuery]int subjectId, [FromBody]MultipleChoice question){
+        public IActionResult MultipleChoice([FromQuery] int subjectId, [FromBody] MultipleChoice question)
+        {
             GetQuestion getQuestion = new();
             getQuestion.tagData.tagContent = question.tagContent;
             getQuestion.subjectData.subjectId = subjectId;
             // 題目敘述
-            getQuestion.questionData = new Question(){
+            getQuestion.questionData = new Question()
+            {
                 typeId = 2,
                 questionLevel = question.questionLevel,
                 questionContent = question.questionContent
@@ -89,7 +99,8 @@ namespace BrainBoost_V2.Controller
             };
 
             // 題目答案
-            getQuestion.answerData = new Answer(){
+            getQuestion.answerData = new Answer()
+            {
                 answerContent = question.answerContent,
                 parse = question.parse
             };
@@ -102,12 +113,14 @@ namespace BrainBoost_V2.Controller
             }
             catch (Exception e)
             {
-                return BadRequest(new Response(){
-                        status_code = Response.StatusCode,
-                        message = $"發生錯誤:  {e}"
-                    });
+                return BadRequest(new Response()
+                {
+                    status_code = Response.StatusCode,
+                    message = $"發生錯誤:  {e}"
+                });
             }
-            return Ok(new Response(){
+            return Ok(new Response()
+            {
                 status_code = Response.StatusCode,
                 message = "新增選擇題成功",
                 data = getQuestion
@@ -118,104 +131,129 @@ namespace BrainBoost_V2.Controller
 
         #region 是非題 檔案匯入
         [HttpPost("[Action]")]
-        public IActionResult Excel_TrueOrFalse([FromForm]int subjectId, [FromForm]List<IFormFile> files){
-            
+        public IActionResult Excel_TrueOrFalse([FromForm] int subjectId, [FromForm] List<IFormFile> files)
+        {
+
             List<GetQuestion> AllQuestion = [];
-            int userId;
-                // 防呆：是否已登入
-                if(User.Identity.Name != null)
-                    userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-                else
-                    return BadRequest(new Response(){status_code = 400,message = "請先登入"});
+            int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+            // 防呆：是否已登入
+            if (userId == null)
+                return BadRequest(new Response() { status_code = 400, message = "請先登入" });
+                
+            foreach (var file in files)
+            {
+                if (file.FileName.ToUpper().EndsWith("XLSX"))
+                {
+                    // 檔案處理
+                    DataTable dataTable = QuestionService.FileDataPrecess(file);
 
-            foreach(var file in files){
-                // 檔案處理
-                DataTable dataTable = QuestionService.FileDataPrecess(file);
-
-                // 將dataTable資料匯入資料庫
-                if(dataTable != null){
-                    foreach (DataRow dataRow in dataTable.Rows)
+                    // 將dataTable資料匯入資料庫
+                    if (dataTable != null)
                     {
-                        GetQuestion getQuestion = new();
-                        getQuestion.tagData.tagContent = dataRow["Tag"].ToString();
-                        getQuestion.subjectData = new(){
-                                                        userId = userId,
-                                                        subjectId = subjectId
-                                                    };
-
-                        // 題目敘述
-                        getQuestion.questionData = new Question(){
-                            typeId = 1,
-                            questionLevel = Convert.ToInt32(dataRow["Level"]),
-                            questionContent = dataRow["Question"].ToString(),
-                            // questionPicture = dataRow["QuestionImg"].ToString()
-                        };
-
-                        // 題目答案
-                        getQuestion.answerData = new Answer(){
-                            answerContent = dataRow["Answer"].ToString(),
-                            parse = dataRow["Parse"].ToString()
-                        };
-
-                        try
+                        foreach (DataRow dataRow in dataTable.Rows)
                         {
-                            QuestionService.InsertQuestion(getQuestion);
-                            getQuestion.answerData.questionId = getQuestion.questionData.questionId;
-                            AllQuestion = [.. AllQuestion, getQuestion];
-                        }
-                        catch (Exception e)
-                        {
-                            return BadRequest(new Response(){
+                            GetQuestion getQuestion = new();
+                            getQuestion.tagData.tagContent = dataRow["Tag"].ToString();
+                            getQuestion.subjectData = new()
+                            {
+                                userId = userId,
+                                subjectId = subjectId
+                            };
+
+                            // 題目敘述
+                            getQuestion.questionData = new Question()
+                            {
+                                userId = getQuestion.subjectData.userId,
+                                typeId = 1,
+                                questionLevel = Convert.ToInt32(dataRow["Level"]),
+                                questionContent = dataRow["Question"].ToString(),
+                                // questionPicture = dataRow["QuestionImg"].ToString()
+                            };
+
+                            // 題目答案
+                            getQuestion.answerData = new Answer()
+                            {
+                                answerContent = dataRow["Answer"].ToString(),
+                                parse = dataRow["Parse"].ToString()
+                            };
+
+                            try
+                            {
+                                QuestionService.InsertQuestion(getQuestion);
+                                getQuestion.answerData.questionId = getQuestion.questionData.questionId;
+                                AllQuestion = [.. AllQuestion, getQuestion];
+                            }
+                            catch (Exception e)
+                            {
+                                return BadRequest(new Response()
+                                {
                                     status_code = Response.StatusCode,
                                     message = $"發生錯誤:  {e}"
                                 });
+                            }
                         }
-                        return Ok(new Response(){
-                            status_code = Response.StatusCode,
-                            message = "新增是非題成功",
-                            data = AllQuestion
+                    }
+                    else
+                    {
+                        return BadRequest(new Response()
+                        {
+                            status_code = 400,
+                            message = "資料表無資料",
                         });
                     }
                 }
-            }
-            return Ok(new Response(){
+                else
+                {
+                    return BadRequest(new Response()
+                    {
                         status_code = Response.StatusCode,
-                        message = "檔案無資料",
+                        message = "檔案格式應為xlsx，請重新匯入" + file.FileName + "！"
                     });
+                }
+            }
+            return Ok(new Response()
+            {
+                status_code = Response.StatusCode,
+                message = "新增是非題成功",
+                data = AllQuestion
+            });
         }
         #endregion
 
         #region 選擇題 檔案匯入
         [HttpPost("[Action]")]
-        public IActionResult Excel_MultipleChoice([FromForm]int subjectId, [FromForm]List<IFormFile> files)
+        public IActionResult Excel_MultipleChoice([FromForm] int subjectId, [FromForm] List<IFormFile> files)
         {
             List<GetQuestion> AllQuestion = [];
-            int userId;
-                // 防呆：是否已登入
-                if(User.Identity.Name != null)
-                    userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-                else
-                    return BadRequest(new Response(){status_code = 400,message = "請先登入"});
+            int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+            // 防呆：是否已登入
+            if (userId == null)
+                return BadRequest(new Response() { status_code = 400, message = "請先登入" });
 
-            foreach(var file in files){
-                if (file.FileName.ToUpper().EndsWith("XLSX")){
+            foreach (var file in files)
+            {
+                if (file.FileName.ToUpper().EndsWith("XLSX"))
+                {
                     // 檔案處理
                     DataTable dataTable = QuestionService.FileDataPrecess(file);
-                    
+
                     // 將dataTable資料匯入資料庫
-                    if(dataTable != null){
-                        
+                    if (dataTable != null)
+                    {
+
                         foreach (DataRow dataRow in dataTable.Rows)
                         {
                             GetQuestion getQuestion = new();
                             getQuestion.tagData.tagContent = dataRow["Tag"].ToString();
-                            getQuestion.subjectData = new(){
-                                                            userId = userId,
-                                                            subjectId = subjectId
-                                                        };
-                            // 題目敘述
-                            getQuestion.questionData = new Question(){
+                            getQuestion.subjectData = new()
+                            {
                                 userId = userId,
+                                subjectId = subjectId
+                            };
+                            // 題目敘述
+                            getQuestion.questionData = new Question()
+                            {
+                                userId = getQuestion.subjectData.userId,
                                 typeId = 2,
                                 questionLevel = Convert.ToInt32(dataRow["Level"]),
                                 questionContent = dataRow["Question"].ToString(),
@@ -243,7 +281,8 @@ namespace BrainBoost_V2.Controller
                                 parse = dataRow["Parse"].ToString()
                             };
 
-                            try{
+                            try
+                            {
                                 QuestionService.InsertQuestion(getQuestion);
                                 getQuestion.answerData.questionId = getQuestion.questionData.questionId;
                                 AllQuestion = [.. AllQuestion, getQuestion];
@@ -251,33 +290,39 @@ namespace BrainBoost_V2.Controller
 
                             catch (Exception e)
                             {
-                                return BadRequest(new Response(){
+                                return BadRequest(new Response()
+                                {
                                     status_code = Response.StatusCode,
                                     message = $"發生錯誤:  {e}"
                                 });
                             }
                         }
                     }
-                    else{
-                        return BadRequest(new Response(){
-                                    status_code = 400,
-                                    message = "資料表無資料",
-                                });
+                    else
+                    {
+                        return BadRequest(new Response()
+                        {
+                            status_code = 400,
+                            message = "資料表無資料",
+                        });
                     }
                 }
-                else{
-                    return BadRequest(new Response(){
+                else
+                {
+                    return BadRequest(new Response()
+                    {
                         status_code = Response.StatusCode,
                         message = "檔案格式應為xlsx，請重新匯入" + file.FileName + "！"
                     });
                 }
 
-                }
-                return Ok(new Response(){
-                    status_code = Response.StatusCode,
-                    message = "匯入選擇題成功",
-                    data = AllQuestion
-                });
+            }
+            return Ok(new Response()
+            {
+                status_code = Response.StatusCode,
+                message = "匯入選擇題成功",
+                data = AllQuestion
+            });
         }
         #endregion
     }
