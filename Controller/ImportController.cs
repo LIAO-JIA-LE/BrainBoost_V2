@@ -118,7 +118,7 @@ namespace BrainBoost_V2.Controller
 
         #region 是非題 檔案匯入
         [HttpPost("[Action]")]
-        public IActionResult Excel_TrueOrFalse([FromQuery]int subjectId, List<IFormFile> files){
+        public IActionResult Excel_TrueOrFalse([FromForm]int subjectId, [FromForm]List<IFormFile> files){
             
             List<GetQuestion> AllQuestion = [];
             int userId;
@@ -187,7 +187,7 @@ namespace BrainBoost_V2.Controller
 
         #region 選擇題 檔案匯入
         [HttpPost("[Action]")]
-        public IActionResult Excel_MultipleChoice([FromQuery]int subjectId, List<IFormFile> files)
+        public IActionResult Excel_MultipleChoice([FromForm]int subjectId, [FromForm]List<IFormFile> files)
         {
             List<GetQuestion> AllQuestion = [];
             int userId;
