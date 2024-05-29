@@ -139,84 +139,96 @@ namespace BrainBoost_V2.Controller
             // 防呆：是否已登入
             if (userId == null)
                 return BadRequest(new Response() { status_code = 400, message = "請先登入" });
-                
-            foreach (var file in files)
+
+            if (files == null)
             {
-                if (file.FileName.ToUpper().EndsWith("XLSX"))
+                foreach (var file in files)
                 {
-                    // 檔案處理
-                    DataTable dataTable = QuestionService.FileDataPrecess(file);
-
-                    // 將dataTable資料匯入資料庫
-                    if (dataTable != null)
+                    if (file.FileName.ToUpper().EndsWith("XLSX"))
                     {
-                        foreach (DataRow dataRow in dataTable.Rows)
+                        // 檔案處理
+                        DataTable dataTable = QuestionService.FileDataPrecess(file);
+
+                        // 將dataTable資料匯入資料庫
+                        if (dataTable != null)
                         {
-                            GetQuestion getQuestion = new();
-                            getQuestion.tagData.tagContent = dataRow["Tag"].ToString();
-                            getQuestion.subjectData = new()
+                            foreach (DataRow dataRow in dataTable.Rows)
                             {
-                                userId = userId,
-                                subjectId = subjectId
-                            };
-
-                            // 題目敘述
-                            getQuestion.questionData = new Question()
-                            {
-                                userId = getQuestion.subjectData.userId,
-                                typeId = 1,
-                                questionLevel = Convert.ToInt32(dataRow["Level"]),
-                                questionContent = dataRow["Question"].ToString(),
-                                // questionPicture = dataRow["QuestionImg"].ToString()
-                            };
-
-                            // 題目答案
-                            getQuestion.answerData = new Answer()
-                            {
-                                answerContent = dataRow["Answer"].ToString(),
-                                parse = dataRow["Parse"].ToString()
-                            };
-
-                            try
-                            {
-                                QuestionService.InsertQuestion(getQuestion);
-                                getQuestion.answerData.questionId = getQuestion.questionData.questionId;
-                                AllQuestion = [.. AllQuestion, getQuestion];
-                            }
-                            catch (Exception e)
-                            {
-                                return BadRequest(new Response()
+                                GetQuestion getQuestion = new();
+                                getQuestion.tagData.tagContent = dataRow["Tag"].ToString();
+                                getQuestion.subjectData = new()
                                 {
-                                    status_code = Response.StatusCode,
-                                    message = $"發生錯誤:  {e}"
-                                });
+                                    userId = userId,
+                                    subjectId = subjectId
+                                };
+
+                                // 題目敘述
+                                getQuestion.questionData = new Question()
+                                {
+                                    userId = getQuestion.subjectData.userId,
+                                    typeId = 1,
+                                    questionLevel = Convert.ToInt32(dataRow["Level"]),
+                                    questionContent = dataRow["Question"].ToString(),
+                                    // questionPicture = dataRow["QuestionImg"].ToString()
+                                };
+
+                                // 題目答案
+                                getQuestion.answerData = new Answer()
+                                {
+                                    answerContent = dataRow["Answer"].ToString(),
+                                    parse = dataRow["Parse"].ToString()
+                                };
+
+                                try
+                                {
+                                    QuestionService.InsertQuestion(getQuestion);
+                                    getQuestion.answerData.questionId = getQuestion.questionData.questionId;
+                                    AllQuestion = [.. AllQuestion, getQuestion];
+                                }
+                                catch (Exception e)
+                                {
+                                    return BadRequest(new Response()
+                                    {
+                                        status_code = Response.StatusCode,
+                                        message = $"發生錯誤:  {e}"
+                                    });
+                                }
                             }
+                        }
+                        else
+                        {
+                            return BadRequest(new Response()
+                            {
+                                status_code = 400,
+                                message = "資料表無資料",
+                            });
                         }
                     }
                     else
                     {
                         return BadRequest(new Response()
                         {
-                            status_code = 400,
-                            message = "資料表無資料",
+                            status_code = Response.StatusCode,
+                            message = "檔案格式應為xlsx，請重新匯入" + file.FileName + "！"
                         });
                     }
                 }
-                else
+                return Ok(new Response()
                 {
-                    return BadRequest(new Response()
-                    {
-                        status_code = Response.StatusCode,
-                        message = "檔案格式應為xlsx，請重新匯入" + file.FileName + "！"
-                    });
-                }
+                    status_code = Response.StatusCode,
+                    message = "新增是非題成功",
+                    data = AllQuestion
+                });
             }
-            return Ok(new Response()
+            else
             {
-                status_code = Response.StatusCode,
-                message = "新增是非題成功",
-                data = AllQuestion
-            });
+                return BadRequest(new Response()
+                {
+                    status_code = Response.StatusCode,
+                    message = "請選擇檔案！"
+                });
+            }
+
         }
         #endregion
 
@@ -230,99 +242,110 @@ namespace BrainBoost_V2.Controller
             if (userId == null)
                 return BadRequest(new Response() { status_code = 400, message = "請先登入" });
 
-            foreach (var file in files)
+            if (files == null)
             {
-                if (file.FileName.ToUpper().EndsWith("XLSX"))
+                foreach (var file in files)
                 {
-                    // 檔案處理
-                    DataTable dataTable = QuestionService.FileDataPrecess(file);
-
-                    // 將dataTable資料匯入資料庫
-                    if (dataTable != null)
+                    if (file.FileName.ToUpper().EndsWith("XLSX"))
                     {
+                        // 檔案處理
+                        DataTable dataTable = QuestionService.FileDataPrecess(file);
 
-                        foreach (DataRow dataRow in dataTable.Rows)
+                        // 將dataTable資料匯入資料庫
+                        if (dataTable != null)
                         {
-                            GetQuestion getQuestion = new();
-                            getQuestion.tagData.tagContent = dataRow["Tag"].ToString();
-                            getQuestion.subjectData = new()
-                            {
-                                userId = userId,
-                                subjectId = subjectId
-                            };
-                            // 題目敘述
-                            getQuestion.questionData = new Question()
-                            {
-                                userId = getQuestion.subjectData.userId,
-                                typeId = 2,
-                                questionLevel = Convert.ToInt32(dataRow["Level"]),
-                                questionContent = dataRow["Question"].ToString(),
-                                // questionPicture = dataRow["QuestionImg"].ToString()
-                            };
 
-                            // 題目選項
-                            getQuestion.options = new List<string>(){
+                            foreach (DataRow dataRow in dataTable.Rows)
+                            {
+                                GetQuestion getQuestion = new();
+                                getQuestion.tagData.tagContent = dataRow["Tag"].ToString();
+                                getQuestion.subjectData = new()
+                                {
+                                    userId = userId,
+                                    subjectId = subjectId
+                                };
+                                // 題目敘述
+                                getQuestion.questionData = new Question()
+                                {
+                                    userId = getQuestion.subjectData.userId,
+                                    typeId = 2,
+                                    questionLevel = Convert.ToInt32(dataRow["Level"]),
+                                    questionContent = dataRow["Question"].ToString(),
+                                    // questionPicture = dataRow["QuestionImg"].ToString()
+                                };
+
+                                // 題目選項
+                                getQuestion.options = new List<string>(){
                                 dataRow["OptionA"].ToString(),
                                 dataRow["OptionB"].ToString(),
                                 dataRow["OptionC"].ToString(),
                                 dataRow["OptionD"].ToString()
                             };
 
-                            // getQuestion.optionImg = new List<string>(){
-                            //     dataRow["OptionA_Img"].ToString(),
-                            //     dataRow["OptionB_Img"].ToString(),
-                            //     dataRow["OptionC_Img"].ToString(),
-                            //     dataRow["OptionD_Img"].ToString()
-                            // };
+                                // getQuestion.optionImg = new List<string>(){
+                                //     dataRow["OptionA_Img"].ToString(),
+                                //     dataRow["OptionB_Img"].ToString(),
+                                //     dataRow["OptionC_Img"].ToString(),
+                                //     dataRow["OptionD_Img"].ToString()
+                                // };
 
-                            getQuestion.answerData = new Answer()
-                            {
-                                answerContent = dataRow["Answer"].ToString(),
-                                parse = dataRow["Parse"].ToString()
-                            };
-
-                            try
-                            {
-                                QuestionService.InsertQuestion(getQuestion);
-                                getQuestion.answerData.questionId = getQuestion.questionData.questionId;
-                                AllQuestion = [.. AllQuestion, getQuestion];
-                            }
-
-                            catch (Exception e)
-                            {
-                                return BadRequest(new Response()
+                                getQuestion.answerData = new Answer()
                                 {
-                                    status_code = Response.StatusCode,
-                                    message = $"發生錯誤:  {e}"
-                                });
+                                    answerContent = dataRow["Answer"].ToString(),
+                                    parse = dataRow["Parse"].ToString()
+                                };
+
+                                try
+                                {
+                                    QuestionService.InsertQuestion(getQuestion);
+                                    getQuestion.answerData.questionId = getQuestion.questionData.questionId;
+                                    AllQuestion = [.. AllQuestion, getQuestion];
+                                }
+
+                                catch (Exception e)
+                                {
+                                    return BadRequest(new Response()
+                                    {
+                                        status_code = Response.StatusCode,
+                                        message = $"發生錯誤:  {e}"
+                                    });
+                                }
                             }
+                        }
+                        else
+                        {
+                            return BadRequest(new Response()
+                            {
+                                status_code = 400,
+                                message = "資料表無資料",
+                            });
                         }
                     }
                     else
                     {
                         return BadRequest(new Response()
                         {
-                            status_code = 400,
-                            message = "資料表無資料",
+                            status_code = Response.StatusCode,
+                            message = "檔案格式應為xlsx，請重新匯入" + file.FileName + "！"
                         });
                     }
-                }
-                else
-                {
-                    return BadRequest(new Response()
-                    {
-                        status_code = Response.StatusCode,
-                        message = "檔案格式應為xlsx，請重新匯入" + file.FileName + "！"
-                    });
-                }
 
+                }
+                return Ok(new Response()
+                {
+                    status_code = Response.StatusCode,
+                    message = "匯入選擇題成功",
+                    data = AllQuestion
+                });
             }
-            return Ok(new Response()
+            else
             {
-                status_code = Response.StatusCode,
-                message = "匯入選擇題成功",
-                data = AllQuestion
-            });
+                return BadRequest(new Response()
+                {
+                    status_code = Response.StatusCode,
+                    message = "請選擇檔案！"
+                });
+            }
         }
         #endregion
     }
