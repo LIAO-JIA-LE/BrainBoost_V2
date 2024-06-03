@@ -161,7 +161,17 @@ namespace BrainBoost_V2.Controller
         #region 刪除題目
         // [HttpDelete]
         // public IActionResult DeleteQuestion([FromQuery]int questionId){
-            
+        //     try
+        //     {
+        //         QuestionService.DeleteQuestion(questionId);
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         return BadRequest(new Response{
+        //                                     status_code = 400 , 
+        //                                     message = e.Message
+        //                                     });
+        //     }
         // }
         #endregion
     }

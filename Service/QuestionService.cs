@@ -305,6 +305,9 @@ namespace BrainBoost_V2.Service
             return GetQuestionViewModelById(updateData.userId,updateData.questionId);
         }
         #endregion
+        #region 刪除題目
+        
+        #endregion
         #region 檔案匯入
         public DataTable FileDataPrecess(IFormFile file){
             Stream stream = file.OpenReadStream();

@@ -72,7 +72,7 @@ namespace BrainBoost_V2.Service
         //
         #endregion
 
-        #region 顯示搶答室
+    #region 顯示搶答室
         //全部搶答室
         public List<RoomList> GetAllRoom(AllRoomViewModel data){
             List<RoomList> dataList;
@@ -260,7 +260,7 @@ namespace BrainBoost_V2.Service
             using var conn = new SqlConnection(cnstr);
             return conn.QueryFirstOrDefault<RoomClassViewModel>(sql, new { roomId, userId });
         }
-        #endregion
+    #endregion
         #region 修改搶答室資訊
         public void UpdateRoom(UpdateRoom roomData){
             // 新增搶答室資訊
@@ -279,7 +279,7 @@ namespace BrainBoost_V2.Service
             return conn.QueryFirstOrDefault<string>(sql, new{roomId, userId});
         }
         #endregion
-        #region 顯示搶答室的題目（只有題目內容）
+        #region 搶答室的題目（只有題目內容）
         public List<Question> RoomQuestionList(int roomId,int userId){
             string sql = $@"SELECT
                                 q.*
@@ -296,6 +296,55 @@ namespace BrainBoost_V2.Service
                             ON rrq.questionId = q.questionId";
             using (var conn = new SqlConnection(cnstr))
             return (List<Question>)conn.Query<Question>(sql,new {roomId,userId});
+        }
+        #endregion
+        #region 搶答室的題目（只有題目id）
+        public List<int> RoomQuestionIdList(int roomId,int userId){
+            string sql = $@"SELECT
+                                q.questionId
+                            FROM(
+                                SELECT
+                                    rq.roomId,
+                                    rq.questionId
+                                FROM RoomQuestion rq
+                                JOIN Room r
+                                ON rq.roomId = r.roomId
+                                WHERE rq.isOutput = 0 AND rq.isDelete = 0 AND r.isDelete = 0 AND r.userId = @userId AND r.roomId = @roomId
+                            )rrq
+                            INNER JOIN Question q
+                            ON rrq.questionId = q.questionId";
+            using (var conn = new SqlConnection(cnstr))
+            return (List<int>)conn.Query<int>(sql,new {roomId,userId});
+        }
+        #endregion
+        #region 修改搶答室題目
+        public void UpdateRoomQuestion(UpdateRoomQuestion UpdateData){
+            using var conn = new SqlConnection(cnstr);
+            List<int> RoomQuestions = RoomQuestionIdList(UpdateData.roomId,UpdateData.userId);
+            var qToAdd = UpdateData.questionId.Except(RoomQuestions).ToList();
+            var qToDelete = RoomQuestions.Except(UpdateData.questionId).ToList();
+            // 刪除題目
+            if(qToDelete.Count > 0){
+                foreach (var questionId in qToDelete){
+                    conn.Execute(
+                        $@" DELETE FROM RoomQuestion
+                            WHERE roomId = @roomId AND questionId = @questionId
+                        ",
+                        new { UpdateData.roomId, questionId }
+                    );
+                }
+            }
+            // 新增題目
+            if(qToAdd.Count > 0){
+                foreach (var questionId in qToAdd){
+                    conn.Execute(
+                        $@" INSERT INTO RoomQuestion(roomId,questionId)
+                            VALUES(@roomId,@questionId)
+                        ",
+                        new { UpdateData.roomId, questionId }
+                    );
+                }
+            }
         }
         #endregion
     }
