@@ -262,17 +262,21 @@ namespace BrainBoost_V2.Service
         }
     #endregion
         #region 修改搶答室資訊
-        public void UpdateRoom(UpdateRoom roomData){
+        public void UpdateRoom(UpdateRoomInfo roomData){
             // 新增搶答室資訊
-            string sql = $@"UPDATE Room SET roomName = @roomName, roomFunction = @roomFunction,
-                            timeLimit = @timeLimit WHERE roomId = @roomId ";
+            string sql = $@"UPDATE Room SET 
+                                roomName = @roomName,
+                                roomFunction = @roomFunction,
+                                timeLimit = @timeLimit,
+                                classId = @classId
+                            WHERE roomId = @roomId AND isDelete = 0 AND isOpen = 0";
             using var conn = new SqlConnection(cnstr);
-            conn.Execute(sql, new {roomData.roomName,roomData.roomFunction, roomData.timeLimit, roomData.roomId});
+            conn.Execute(sql, new {roomData.roomName,roomData.roomFunction, roomData.timeLimit, roomData.roomId, roomData.classId});
         }
         #endregion
         #region 刪除搶答室
         public string DeleteRoom(int roomId,int userId){
-            string sql = $@"UPDATE Room SET isDelete = 1 WHERE roomId = @roomId AND userId = @userId
+            string sql = $@"UPDATE Room SET isDelete = 1 WHERE roomId = @roomId AND userId = @userId AND isDelete = 0
                             SELECT roomName FROM Room WHERE roomId = @roomId AND userId = @userId
                         ";
             using var conn = new SqlConnection(cnstr);
