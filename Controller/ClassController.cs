@@ -29,10 +29,10 @@ namespace BrainBoost_V2.Controller
                 //是否有登入
                 if(User.Identity.Name == null)
                     return BadRequest(new Response(){status_code = 400, message = "請先登入"});
+                insertClass.userId = userService.GetDataByAccount(User.Identity.Name).userId;
                 //是否有班級存在
                 if(classService.CheckClass(insertClass))
                     return BadRequest(new Response(){status_code = 400, message = "該班級已存在"});
-                insertClass.userId = userService.GetDataByAccount(User.Identity.Name).userId;
                 int classId = classService.InsertClass(insertClass);
                 return Ok(new Response(){
                     status_code = 200,
@@ -54,6 +54,7 @@ namespace BrainBoost_V2.Controller
         public IActionResult GetClass([FromQuery]int classId,[FromQuery]string search){
             try
             {
+                if(User.Identity == null || User.Identity.Name == null) return BadRequest(new Response(){status_code = 400, message = "請先登入"});
                 int userId = userService.GetDataByAccount(User.Identity.Name).userId;
                 if(classId != 0 && string.IsNullOrEmpty(search)){
                     return Ok(new Response(){
@@ -113,6 +114,7 @@ namespace BrainBoost_V2.Controller
         public IActionResult DeleteClass(DeleteClass deleteData){
             try
             {
+                if(User.Identity == null || User.Identity.Name == null) return BadRequest(new Response(){status_code = 400, message = "請先登入"});
                 classService.DeleteClass(deleteData);
                 return Ok(new Response(){
                     status_code = 200,
@@ -133,6 +135,7 @@ namespace BrainBoost_V2.Controller
         public IActionResult UpdateClass([FromBody]UpdateClass updateData){
             try
             {
+                if(User.Identity == null || User.Identity.Name == null) return BadRequest(new Response(){status_code = 400, message = "請先登入"});
                 updateData.userId = userService.GetDataByAccount(User.Identity.Name).userId;
                 if(classService.CheckClassById(updateData.classId,updateData.userId))
                     classService.UpdateClass(updateData);

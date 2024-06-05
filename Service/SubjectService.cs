@@ -36,7 +36,7 @@ namespace BrainBoost_V2.Service
                                     ROW_NUMBER() OVER(ORDER BY subjectId) rNum,
                                     * 
                                 FROM ""Subject"" s
-                                WHERE userId = @userId
+                                WHERE userId = @userId AND isDelete =0
                             )S
                         ";
             using var conn = new SqlConnection(cnstr);
@@ -53,7 +53,7 @@ namespace BrainBoost_V2.Service
                                     ROW_NUMBER() OVER(ORDER BY subjectId) rNum,
                                     * 
                                 FROM ""Subject"" s
-                                WHERE userId = @userId
+                                WHERE userId = @userId AND isDelete =0
                             )S
                             WHERE S.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }
                         ";
@@ -71,7 +71,7 @@ namespace BrainBoost_V2.Service
                                     ROW_NUMBER() OVER(ORDER BY subjectId) rNum,
                                     * 
                                 FROM ""Subject"" s
-                                WHERE userId = @userId AND subjectContent LIKE '%{search}%'
+                                WHERE userId = @userId AND isDelete =0 AND subjectContent LIKE '%{search}%'
                             )S
                             WHERE S.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }
                         ";
@@ -90,7 +90,7 @@ namespace BrainBoost_V2.Service
                                     ROW_NUMBER() OVER(ORDER BY subjectId) rNum,
                                     * 
                                 FROM ""Subject"" s
-                                WHERE userId = @userId AND subjectContent LIKE '%{search}%'
+                                WHERE userId = @userId AND isDelete =0 AND subjectContent LIKE '%{search}%'
                             )S
                             WHERE S.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }
                         ";
@@ -121,7 +121,7 @@ namespace BrainBoost_V2.Service
                                         s.userId,
                                         s.subjectContent
                                     FROM ""Subject"" s
-                                    WHERE s.userId = @userId AND s.subjectId = @subjectId
+                                    WHERE s.userId = @userId AND isDelete =0 AND s.subjectId = @subjectId
                                 ";
             string userSql = $@"
                                     SELECT
@@ -139,7 +139,7 @@ namespace BrainBoost_V2.Service
                                 FROM SubjectTag st
                                 JOIN Tag t ON st.tagId = t.tagId
                                 JOIN ""Subject"" s ON s.subjectId = st.subjectId
-                                WHERE st.subjectId = @subjectId AND s.userId = @userId
+                                WHERE st.subjectId = @subjectId AND s.isDelete =0 AND s.userId = @userId
                                 GROUP BY t.tagId,t.tagContent
                             ";
             using var conn = new SqlConnection(cnstr);
@@ -147,6 +147,15 @@ namespace BrainBoost_V2.Service
             Data.user = conn.QueryFirstOrDefault<User>(userSql,new{userId});
             Data.tagList = new List<Tag>(conn.Query<Tag>(tagSql,new{subjectId,userId}));
             return Data;
+        }
+        
+        //檢查科目資訊
+        public bool CheckSubject(InsertSubject data){
+            string sql = $@"SELECT COUNT(*) FROM ""Subject"" WHERE subjectContent = @subjectContent AND userId = @userId AND isDelete = 0 ";
+            using var conn = new SqlConnection(cnstr);
+            if(conn.QueryFirst<int>(sql,new{data.subjectContent,data.userId}) >= 1)
+                return true;
+            return false;
         }
     
         //軟刪除科目

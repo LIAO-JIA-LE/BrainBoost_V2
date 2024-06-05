@@ -28,9 +28,9 @@ namespace BrainBoost_V2.Service
         }
         //檢查班級資訊
         public bool CheckClass(InsertClass data){
-            string sql = $@"SELECT COUNT(*) FROM ""Class"" WHERE className = @className AND isDelete = 0 ";
+            string sql = $@"SELECT COUNT(*) FROM ""Class"" WHERE className = @className AND userId = @userId AND isDelete = 0 ";
             using var conn = new SqlConnection(cnstr);
-            if(conn.QueryFirst<int>(sql,new{data.className}) == 1)
+            if(conn.QueryFirst<int>(sql,new{data.className,data.userId}) >= 1)
                 return true;
             return false;
         }

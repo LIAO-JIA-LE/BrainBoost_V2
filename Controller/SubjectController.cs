@@ -20,8 +20,8 @@ namespace BrainBoost_V2.Controller
         [HttpGet]
         [Route("AllSubject")]
         public IActionResult GetAllSubject([FromQuery]string search,[FromQuery]int page = 1){
-            Response result;
             try{
+                if(User.Identity == null || User.Identity.Name == null) return BadRequest(new Response(){status_code = 400, message = "請先登入"});
                 AllSubjectViewModel AllSubjectViewModel = new(){
                                                         forpaging = new Forpaging(page),
                                                         userId = UserService.GetDataByAccount(User.Identity.Name).userId,
@@ -47,6 +47,7 @@ namespace BrainBoost_V2.Controller
         public IActionResult GetSubject([FromQuery]int subjectId){
             try
             {
+                if(User.Identity == null || User.Identity.Name == null) return BadRequest(new Response(){status_code = 400, message = "請先登入"});
                 Subject subject = new(){
                                         userId = UserService.GetDataByAccount(User.Identity.Name).userId,
                                         subjectId = subjectId
@@ -79,7 +80,9 @@ namespace BrainBoost_V2.Controller
         public IActionResult InsertSubject([FromBody]InsertSubject insertData){
             Response result;
             try{
+                if(User.Identity == null || User.Identity.Name == null) return BadRequest(new Response{status_code = 400, message = "請先登入"});
                 insertData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                if(SubjectService.CheckSubject(insertData)) return BadRequest(new Response{status_code = 400, message = "該科目已存在"});
                 result = new(){
                     status_code = 200,
                     message = "新增成功",
@@ -98,29 +101,29 @@ namespace BrainBoost_V2.Controller
         //修改科目名稱
         [HttpPut]
         public IActionResult UpdateSubject([FromBody]UpdateSubject updateSubject){
-            Response result;
             try
             {
+                if(User.Identity == null || User.Identity.Name == null) return BadRequest(new Response(){status_code = 400, message = "請先登入"});
                 Subject subject = new(){
                                     subjectId = updateSubject.subjectId,
                                     subjectContent = updateSubject.subjectContent,
                                     userId = UserService.GetDataByAccount(User.Identity.Name).userId
                                 };
                 SubjectService.UpdateSubject(subject);
-                result = new(){
+                SubjectTagViewModel newSubjectViewModel = SubjectService.GetSubject(subject.userId,subject.subjectId);
+                string newSubjectContnet = newSubjectViewModel.subject.subjectContent;
+                return Ok(new Response{
                     status_code = 200,
-                    message = "修改成功",
-                    data = SubjectService.GetSubject(subject.userId,subject.subjectId)
-                };
+                    message = "已將該班級名稱修改為" + newSubjectContnet
+                });
             }
             catch (Exception e)
             {
-                result = new(){
+                return BadRequest(new Response{
                     status_code = 400,
                     message = e.Message
-                };
+                });
             }
-            return Ok(result);
         }
 
         //刪除科目
