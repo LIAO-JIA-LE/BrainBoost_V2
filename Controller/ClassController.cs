@@ -51,18 +51,18 @@ namespace BrainBoost_V2.Controller
         //取得班級列表
         [HttpGet]
         [Route("")]
-        public IActionResult GetClass([FromQuery]int classId){
+        public IActionResult GetClass([FromQuery]int classId,[FromQuery]string search){
             try
             {
                 int userId = userService.GetDataByAccount(User.Identity.Name).userId;
-                if(classId != 0){
+                if(classId != 0 && string.IsNullOrEmpty(search)){
                     return Ok(new Response(){
                         status_code = 200,
                         message = "讀取成功",
                         data = classService.GetClass(classId,userId)
                     });
                 }
-                List<Class> Class_List = classService.GetAllClass(userId);
+                List<Class> Class_List = classService.GetAllClass(userId,search);
                 return Ok(new Response(){
                     status_code = 200,
                     message = @"讀取成功,所有班級",
@@ -70,7 +70,7 @@ namespace BrainBoost_V2.Controller
                 });
                 
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 return BadRequest(new Response(){
                     status_code = 400,
@@ -78,6 +78,35 @@ namespace BrainBoost_V2.Controller
                 });
             }
         }
+        // [HttpGet]
+        // [Route("")]
+        // public IActionResult GetClass([FromQuery]int classId){
+        //     try
+        //     {
+        //         int userId = userService.GetDataByAccount(User.Identity.Name).userId;
+        //         if(classId != 0){
+        //             return Ok(new Response(){
+        //                 status_code = 200,
+        //                 message = "讀取成功",
+        //                 data = classService.GetClass(classId,userId)
+        //             });
+        //         }
+        //         List<Class> Class_List = classService.GetAllClass(userId,"");
+        //         return Ok(new Response(){
+        //             status_code = 200,
+        //             message = @"讀取成功,所有班級",
+        //             data = Class_List
+        //         });
+                
+        //     }
+        //     catch (System.Exception e)
+        //     {
+        //         return BadRequest(new Response(){
+        //             status_code = 400,
+        //             message = e.Message
+        //         });
+        //     }
+        // }
         //刪除班級
         [HttpDelete]
         [Route("")]
@@ -109,6 +138,7 @@ namespace BrainBoost_V2.Controller
                     classService.UpdateClass(updateData);
                 else
                     return BadRequest(new Response(){status_code = 400,message = "班級不存在"});
+                if(string.IsNullOrEmpty(updateData.className)) return BadRequest(new Response{status_code=400,message = "請輸入班級名稱"});
                 return Ok(new Response(){
                     status_code = 200,
                     message = "修改成功",

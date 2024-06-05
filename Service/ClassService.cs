@@ -47,8 +47,14 @@ namespace BrainBoost_V2.Service
             return conn.QueryFirstOrDefault<Class>(sql,new{classId,userId});
         }
         //取得全部班級
-        public List<Class> GetAllClass(int userId){
-            string sql = $@"SELECT * FROM ""Class"" WHERE userId = @userId AND isDelete = 0";
+        public List<Class> GetAllClass(int userId,string search){
+            string sql;
+            if(string.IsNullOrEmpty(search)){
+                sql = $@"SELECT * FROM ""Class"" WHERE userId = @userId AND isDelete = 0";
+            }
+            else{
+                sql = $@"SELECT * FROM ""Class"" WHERE userId = @userId AND isDelete = 0 AND className LIKE '%{search}%'";
+            }
             using var conn = new SqlConnection(cnstr);
             return new List<Class>(conn.Query<Class>(sql,new{userId}));
         }
