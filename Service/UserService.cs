@@ -184,7 +184,7 @@ namespace BrainBoost_V2.Service
             User user = GetDataByEmail(Data.Email);
             user.userPassword = HashPassword(Data.NewPassword);
             string sql = $@"UPDATE ""User"" SET userPassword = @userPassword WHERE userEmail = @userEmail;
-                            UPDATE UserRole SET roleId -= 4 WHERE userId = @userId";
+                            UPDATE UserRole SET roleId = 1 WHERE userId = @userId";
             using var conn = new SqlConnection(cnstr);
             conn.Execute(sql,user);
         }

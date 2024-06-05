@@ -159,20 +159,35 @@ namespace BrainBoost_V2.Controller
         }
         #endregion
         #region 刪除題目
-        // [HttpDelete]
-        // public IActionResult DeleteQuestion([FromQuery]int questionId){
-        //     try
-        //     {
-        //         QuestionService.DeleteQuestion(questionId);
-        //     }
-        //     catch (Exception e)
-        //     {
-        //         return BadRequest(new Response{
-        //                                     status_code = 400 , 
-        //                                     message = e.Message
-        //                                     });
-        //     }
-        // }
+        [HttpDelete]
+        [Route("")]
+        public IActionResult DeleteQuestion([FromQuery]int questionId){
+            try
+            {
+                if(User.Identity.Name == null ) 
+                    return BadRequest(new Response{status_code = 400 , message = "請先登入"});
+                int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                if(QuestionService.DeleteQuestion(questionId,userId)==1){
+                    return Ok(new Response{
+                        status_code = 200,
+                        message = "刪除成功"
+                    });
+                }
+                else{
+                    return BadRequest(new Response{
+                        status_code = 400,
+                        message = "刪除失敗"
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response{
+                                            status_code = 400 , 
+                                            message = e.Message
+                                            });
+            }
+        }
         #endregion
     }
 

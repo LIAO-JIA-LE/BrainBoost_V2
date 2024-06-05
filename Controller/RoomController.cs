@@ -22,6 +22,11 @@ namespace BrainBoost_V2.Controller
         [Route("")]
         public IActionResult InsertRoom([FromBody]InsertRoom roomData){
             try{
+                if(User.Identity.Name == null)
+                    return BadRequest(new Response{
+                        status_code = 400,
+                        message = "請先登入"
+                    });
                 //班級防呆、搶答室名稱防呆
                 roomData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
                 int roomId = RoomService.InsertRoom(roomData);
@@ -48,9 +53,14 @@ namespace BrainBoost_V2.Controller
         //全部搶答室
         [HttpGet]
         [Route("AllRoom")]
-        public IActionResult GetAllRoom([FromQuery]string search,[FromQuery]int classId,[FromQuery]int page = 1){
+        public IActionResult GetAllRoom([FromQuery]string search,[FromQuery]int classId,[FromQuery]bool used,[FromQuery]int page = 1){
             try
             {
+                if(User.Identity.Name == null)
+                    return BadRequest(new Response{
+                        status_code = 400,
+                        message = "請先登入"
+                    });
                 AllRoomViewModel allRoomViewModel = new AllRoomViewModel
                 {
                     userId = UserService.GetDataByAccount(User.Identity.Name).userId,
@@ -88,6 +98,11 @@ namespace BrainBoost_V2.Controller
         public IActionResult GetRoom([FromQuery]int roomId){
             try
             {
+                if(User.Identity.Name == null)
+                    return BadRequest(new Response{
+                        status_code = 400,
+                        message = "請先登入"
+                    });
                 int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
                 RoomClassViewModel roomClassViewModel = RoomService.GetRoom(roomId, userId);
                 if(roomClassViewModel == null){
@@ -118,6 +133,11 @@ namespace BrainBoost_V2.Controller
         public IActionResult GetRoomQuestion([FromQuery]int roomId){
             try
             {
+                if(User.Identity.Name == null)
+                    return BadRequest(new Response{
+                        status_code = 400,
+                        message = "請先登入"
+                    });
                 int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
                 RoomQuestionViewModel roomQuestionList = new()
                 {

@@ -129,13 +129,13 @@ namespace BrainBoost_V2.Controller
 
         #endregion
 
-        public class Excel_TrueOrFalse_Parameter(){
+        public class Excel_Parameter(){
             public int subjectId{get;set;}
             public List<IFormFile> files {get;set;}
         }
         #region 是非題 檔案匯入
         [HttpPost("[Action]")]
-        public IActionResult Excel_TrueOrFalse([FromForm]Excel_TrueOrFalse_Parameter data)
+        public IActionResult Excel_TrueOrFalse([FromForm]Excel_Parameter data)
         {
             int subjectId = data.subjectId;
             List<IFormFile> files = data.files;
@@ -227,8 +227,10 @@ namespace BrainBoost_V2.Controller
 
         #region 選擇題 檔案匯入
         [HttpPost("[Action]")]
-        public IActionResult Excel_MultipleChoice([FromForm] int subjectId, [FromForm] List<IFormFile> files)
+        public IActionResult Excel_MultipleChoice([FromForm]Excel_Parameter data)
         {
+            int subjectId = data.subjectId;
+            List<IFormFile> files = data.files;
             List<GetQuestion> AllQuestion = [];
             int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
             // 防呆：是否已登入

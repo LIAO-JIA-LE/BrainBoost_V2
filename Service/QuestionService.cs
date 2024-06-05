@@ -306,7 +306,14 @@ namespace BrainBoost_V2.Service
         }
         #endregion
         #region 刪除題目
-        
+        public int DeleteQuestion(int questionId,int userId){
+            string sql = $@"
+                            UPDATE [Question] SET isDelete = 1
+                            WHERE questionId = @questionId AND userId = @userid
+                        ";
+            using var conn = new SqlConnection(cnstr);
+            return conn.Execute(sql,new{questionId,userId});
+        }
         #endregion
         #region 檔案匯入
         public DataTable FileDataPrecess(IFormFile file){
