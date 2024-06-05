@@ -20,7 +20,7 @@ namespace BrainBoost_V2.Controller
         public IActionResult GetAllTag([FromQuery]int subjectId){
             try{
                 if(User.Identity.Name == null) return BadRequest(new Response{status_code = 400, message = "請先登入"});
-                if(subjectId == 0) return BadRequest(new Response{status_code = 400, message = "請先輸入科目編號"});
+                // if(subjectId == 0) return BadRequest(new Response{status_code = 400, message = "請先輸入科目編號"});
                 int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
                 List<Tag> tagList = TagService.GetAllTag(userId,subjectId);
                 return Ok(new Response{

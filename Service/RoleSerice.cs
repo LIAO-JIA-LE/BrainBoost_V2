@@ -28,7 +28,7 @@ namespace BrainBoost_V2.Service
             conn.Execute(sql);
         }
         public void SetMemberRole_ForgetPassword(int userId){
-            string sql = $@"UPDATE UserRole SET roleId += 4 WHERE userId = {userId}";
+            string sql = $@"UPDATE UserRole SET roleId = 5 WHERE userId = {userId}";
             using var conn = new SqlConnection(cnstr);
             conn.Execute(sql);
         }
