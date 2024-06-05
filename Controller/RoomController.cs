@@ -147,42 +147,28 @@ namespace BrainBoost_V2.Controller
             }
         }
         #endregion
-        #region 修改搶答室
-        // 修改 搶答室資訊
-        [HttpPut]
-        [Route("")]
-        public IActionResult UpdateRoom([FromBody]UpdateRoom raceData){
-            try
-            {
-                int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-                RoomService.UpdateRoom(raceData);
-                var Response = RoomService.GetRoom(raceData.roomId, userId);
-                return Ok(new Response{
-                    status_code = 200,
-                    message = "修改成功",
-                    data = Response
-                });
-            }
-            catch (Exception e)
-            {
-                return BadRequest(new Response{
-                        status_code = 400,
-                        message = e.Message
-                    });
-            }
-        }
-        #endregion
         #region 刪除搶答室
         [HttpDelete]
         [Route("")]
         public IActionResult DeleteRoom([FromQuery]int roomId){
             try
             {
+                if(User.Identity.Name == null)
+                    return BadRequest(new Response{
+                        status_code = 400,
+                        message = "請先登入"
+                    });
                 int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                if(RoomService.GetRoom(roomId,userId) == null)
+                    return BadRequest(new Response{
+                        status_code = 400,
+                        message = "您無權修改此搶答室或該搶答室以刪除",
+                        data = roomId
+                    });
                 var roomname = RoomService.DeleteRoom(roomId, userId);
                 return Ok(new Response{
                     status_code = 200,
-                    message = "刪除成功 " + roomname + " 搶答室"
+                    message = "成功刪除 " + roomname + " 搶答室"
                 });
             }
             catch (Exception e)
@@ -194,8 +180,42 @@ namespace BrainBoost_V2.Controller
             }
         }
         #endregion
-        #region 新增搶答室題目
-        
+        #region 修改搶答室(資訊、題目)
+        [HttpPut]
+        [Route("")]
+        public IActionResult UpdateRoom([FromBody]UpdateRoom UpdateData){
+            try
+            {
+                if(User.Identity.Name == null)
+                    return BadRequest(new Response{
+                        status_code = 400,
+                        message = "請先登入"
+                    });
+                UpdateData.roomQuestion.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                UpdateData.roomInfo.userId = UpdateData.roomQuestion.userId;
+                if(RoomService.GetRoom(UpdateData.roomInfo.roomId,UpdateData.roomQuestion.userId) == null)
+                    return BadRequest(new Response{
+                        status_code = 400,
+                        message = "您無權修改此搶答室或該搶答室以刪除",
+                        data = UpdateData
+                    });
+                RoomService.UpdateRoom(UpdateData.roomInfo);
+                RoomService.UpdateRoomQuestion(UpdateData.roomQuestion);
+                return Ok(new Response{
+                    status_code = 200,
+                    message = "修改成功",
+                    data = UpdateData
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response{
+                    status_code = 400 , 
+                    message = e.Message ,
+                    data = UpdateData
+                });
+            }
+        }
         #endregion     
     }
 }
