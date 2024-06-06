@@ -14,85 +14,122 @@ namespace BrainBoost_V2.Service
         private string? cnstr = configuration.GetConnectionString("ConnectionStrings");
 
         #region 科目
+        // 有分頁
+        // public List<Subject> GetAllSubject(AllSubjectViewModel AllSubjectViewModel){
+        //     List<Subject> subjectList;
+        //     if(string.IsNullOrEmpty(AllSubjectViewModel.search)){
+        //         SetMaxPage(AllSubjectViewModel.userId,AllSubjectViewModel.forpaging);
+        //         subjectList = SubjectList(AllSubjectViewModel.userId,AllSubjectViewModel.forpaging);
+        //     }
+        //     else{
+        //         SetMaxPage(AllSubjectViewModel.userId,AllSubjectViewModel.search,AllSubjectViewModel.forpaging);
+        //         subjectList = SubjectList(AllSubjectViewModel.userId, AllSubjectViewModel.search,AllSubjectViewModel.forpaging);
+        //     }
+        //     return subjectList;
+        // }
+
+        // 無分頁
         public List<Subject> GetAllSubject(AllSubjectViewModel AllSubjectViewModel){
             List<Subject> subjectList;
             if(string.IsNullOrEmpty(AllSubjectViewModel.search)){
-                SetMaxPage(AllSubjectViewModel.userId,AllSubjectViewModel.forpaging);
-                subjectList = SubjectList(AllSubjectViewModel.userId,AllSubjectViewModel.forpaging);
+                subjectList = SubjectList(AllSubjectViewModel.userId);
             }
             else{
-                SetMaxPage(AllSubjectViewModel.userId,AllSubjectViewModel.search,AllSubjectViewModel.forpaging);
-                subjectList = SubjectList(AllSubjectViewModel.userId, AllSubjectViewModel.search,AllSubjectViewModel.forpaging);
+                subjectList = SubjectList(AllSubjectViewModel.userId, AllSubjectViewModel.search);
             }
             return subjectList;
         }
         #region 查詢科目 (無搜詢)
-        public void SetMaxPage(int userId,Forpaging forpaging){
+        // public void SetMaxPage(int userId,Forpaging forpaging){
+        //     string sql = $@"
+        //                     SELECT
+        //                         COUNT(*)
+        //                     FROM(
+        //                         SELECT
+        //                             ROW_NUMBER() OVER(ORDER BY subjectId) rNum,
+        //                             * 
+        //                         FROM ""Subject"" s
+        //                         WHERE userId = @userId AND isDelete =0
+        //                     )S
+        //                 ";
+        //     using var conn = new SqlConnection(cnstr);
+        //     int row = conn.QueryFirst<int>(sql, new{userId});
+        //     forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
+        //     forpaging.SetRightPage();
+        // }
+        // public List<Subject> SubjectList(int userId,Forpaging forpaging){
+        //     string sql = $@"
+        //                     SELECT
+        //                         *
+        //                     FROM(
+        //                         SELECT
+        //                             ROW_NUMBER() OVER(ORDER BY subjectId) rNum,
+        //                             * 
+        //                         FROM ""Subject"" s
+        //                         WHERE userId = @userId AND isDelete =0
+        //                     )S
+        //                     WHERE S.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }
+        //                 ";
+        //     using var conn = new SqlConnection(cnstr);
+        //     return new List<Subject>(conn.Query<Subject>(sql,new {userId}));
+        // }
+        public List<Subject> SubjectList(int userId){
             string sql = $@"
                             SELECT
-                                COUNT(*)
-                            FROM(
-                                SELECT
-                                    ROW_NUMBER() OVER(ORDER BY subjectId) rNum,
-                                    * 
-                                FROM ""Subject"" s
-                                WHERE userId = @userId AND isDelete =0
-                            )S
-                        ";
-            using var conn = new SqlConnection(cnstr);
-            int row = conn.QueryFirst<int>(sql, new{userId});
-            forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
-            forpaging.SetRightPage();
-        }
-        public List<Subject> SubjectList(int userId,Forpaging forpaging){
-            string sql = $@"
-                            SELECT
-                                *
-                            FROM(
-                                SELECT
-                                    ROW_NUMBER() OVER(ORDER BY subjectId) rNum,
-                                    * 
-                                FROM ""Subject"" s
-                                WHERE userId = @userId AND isDelete =0
-                            )S
-                            WHERE S.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }
+                                ROW_NUMBER() OVER(ORDER BY subjectId) rNum,
+                                * 
+                            FROM [Subject] s
+                            WHERE userId = 1 AND isDelete =0
+                            ORDER BY rNum DESC
                         ";
             using var conn = new SqlConnection(cnstr);
             return new List<Subject>(conn.Query<Subject>(sql,new {userId}));
         }
         #endregion
         #region 查詢科目 (有搜詢)
-        public void SetMaxPage(int userId,string search,Forpaging forpaging){
-            string sql = $@"
-                            SELECT
-                                COUNT(*)
-                            FROM(
-                                SELECT
-                                    ROW_NUMBER() OVER(ORDER BY subjectId) rNum,
-                                    * 
-                                FROM ""Subject"" s
-                                WHERE userId = @userId AND isDelete =0 AND subjectContent LIKE '%{search}%'
-                            )S
-                            WHERE S.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }
-                        ";
-            using var conn = new SqlConnection(cnstr);
-            int row = conn.QueryFirst<int>(sql, new{userId});
-            forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
-            forpaging.SetRightPage();
-        }
+        // public void SetMaxPage(int userId,string search,Forpaging forpaging){
+        //     string sql = $@"
+        //                     SELECT
+        //                         COUNT(*)
+        //                     FROM(
+        //                         SELECT
+        //                             ROW_NUMBER() OVER(ORDER BY subjectId) rNum,
+        //                             * 
+        //                         FROM ""Subject"" s
+        //                         WHERE userId = @userId AND isDelete =0 AND subjectContent LIKE '%{search}%'
+        //                     )S
+        //                     WHERE S.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }
+        //                 ";
+        //     using var conn = new SqlConnection(cnstr);
+        //     int row = conn.QueryFirst<int>(sql, new{userId});
+        //     forpaging.MaxPage = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(row) / forpaging.Item));
+        //     forpaging.SetRightPage();
+        // }
 
-        public List<Subject> SubjectList(int userId,string search,Forpaging forpaging){
+        // public List<Subject> SubjectList(int userId,string search,Forpaging forpaging){
+        //     string sql = $@"
+        //                     SELECT
+        //                         *
+        //                     FROM(
+        //                         SELECT
+        //                             ROW_NUMBER() OVER(ORDER BY subjectId) rNum,
+        //                             * 
+        //                         FROM ""Subject"" s
+        //                         WHERE userId = @userId AND isDelete =0 AND subjectContent LIKE '%{search}%'
+        //                     )S
+        //                     WHERE S.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }
+        //                 ";
+        //     using var conn = new SqlConnection(cnstr);
+        //     return new List<Subject>(conn.Query<Subject>(sql,new {userId}));
+        // }
+        public List<Subject> SubjectList(int userId,string search){
             string sql = $@"
                             SELECT
-                                *
-                            FROM(
-                                SELECT
-                                    ROW_NUMBER() OVER(ORDER BY subjectId) rNum,
-                                    * 
-                                FROM ""Subject"" s
-                                WHERE userId = @userId AND isDelete =0 AND subjectContent LIKE '%{search}%'
-                            )S
-                            WHERE S.rNum BETWEEN {(forpaging.NowPage - 1) * forpaging.Item + 1} AND {forpaging.NowPage * forpaging.Item }
+                                ROW_NUMBER() OVER(ORDER BY subjectId) rNum,
+                                * 
+                            FROM ""Subject"" s
+                            WHERE userId = @userId AND isDelete =0 AND subjectContent LIKE '%{search}%'
+                            ORDER BY rNum DESC
                         ";
             using var conn = new SqlConnection(cnstr);
             return new List<Subject>(conn.Query<Subject>(sql,new {userId}));

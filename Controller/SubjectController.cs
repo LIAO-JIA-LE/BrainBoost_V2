@@ -17,22 +17,49 @@ namespace BrainBoost_V2.Controller
 
         #region 科目
         // 查看該老師所有的科目
+        // 分頁拿掉
+        // [HttpGet]
+        // [Route("AllSubject")]
+        // public IActionResult GetAllSubject([FromQuery]string search,[FromQuery]int page = 1){
+        //     try{
+        //         if(User.Identity == null || User.Identity.Name == null) return BadRequest(new Response(){status_code = 400, message = "請先登入"});
+        //         AllSubjectViewModel AllSubjectViewModel = new(){
+        //                                                 forpaging = new Forpaging(page),
+        //                                                 userId = UserService.GetDataByAccount(User.Identity.Name).userId,
+        //                                                 search = search
+        //                                             };
+        //         AllSubjectViewModel.subjectList = SubjectService.GetAllSubject(AllSubjectViewModel);
+        //         return Ok(new Response(){
+        //                                 status_code = 200,
+        //                                 message = "讀取成功",
+        //                                 data = AllSubjectViewModel
+        //                             });
+        //     }
+        //     catch (Exception e) {
+        //         return BadRequest(new Response(){
+        //                                 status_code = 400,
+        //                                 message = e.Message
+        //                             });
+        //     }
+        // }
         [HttpGet]
         [Route("AllSubject")]
-        public IActionResult GetAllSubject([FromQuery]string search,[FromQuery]int page = 1){
+        public IActionResult GetAllSubject([FromQuery]string search){
             try{
                 if(User.Identity == null || User.Identity.Name == null) return BadRequest(new Response(){status_code = 400, message = "請先登入"});
                 AllSubjectViewModel AllSubjectViewModel = new(){
-                                                        forpaging = new Forpaging(page),
                                                         userId = UserService.GetDataByAccount(User.Identity.Name).userId,
                                                         search = search
                                                     };
                 AllSubjectViewModel.subjectList = SubjectService.GetAllSubject(AllSubjectViewModel);
-                return Ok(new Response(){
-                                        status_code = 200,
-                                        message = "讀取成功",
-                                        data = AllSubjectViewModel
-                                    });
+                if(AllSubjectViewModel.subjectList.Count > 0){
+                    return Ok(new Response(){
+                                            status_code = 200,
+                                            message = "讀取成功",
+                                            data = AllSubjectViewModel
+                                        });
+                }
+                else return Ok(new Response{status_code = 204, message="無資料"}) ;
             }
             catch (Exception e) {
                 return BadRequest(new Response(){

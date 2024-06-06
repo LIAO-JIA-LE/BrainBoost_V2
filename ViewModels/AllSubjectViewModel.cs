@@ -11,7 +11,7 @@ namespace BrainBoost_V2.ViewModels
     {
         public int userId {get;set;}
         public string search{get;set;}
-        public Forpaging forpaging{get;set;}
+        // public Forpaging forpaging{get;set;}
         public List<Subject> subjectList {get;set;}
     }
 }

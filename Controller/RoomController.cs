@@ -29,6 +29,7 @@ namespace BrainBoost_V2.Controller
                     });
                 //班級防呆、搶答室名稱防呆
                 roomData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                if(RoomService.CheckRoom(roomData.roomName,roomData.userId))return BadRequest(new Response{status_code=400,message="該搶答室已存在"});
                 int roomId = RoomService.InsertRoom(roomData);
                 RoomClassViewModel room = RoomService.GetRoom(roomId,roomData.userId);
                 return Ok(new Response{
@@ -237,5 +238,27 @@ namespace BrainBoost_V2.Controller
             }
         }
         #endregion     
+        #region 檢查搶答是是否存在
+        [HttpGet]
+        [Route("CheckRoom")]
+        public IActionResult CheckRoom([FromQuery]string roomName){
+            try{
+                if(User.Identity == null || User.Identity.Name == null)
+                    return BadRequest(new Response{
+                        status_code = 400,
+                        message = "請先登入"
+                    });
+                int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                if(RoomService.CheckRoom(roomName,userId))return BadRequest(new Response{status_code=400,message="該搶答室已存在"});
+                return Ok(new Response{status_code=200});
+            }
+            catch (Exception e){
+                return BadRequest(new Response{
+                    status_code = 400 ,
+                    message = e.Message
+                });
+            }
+        }
+        #endregion
     }
 }

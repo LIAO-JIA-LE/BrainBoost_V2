@@ -36,12 +36,14 @@ namespace BrainBoost_V2.Service
         #region 匯入搶答室問題
         public void RoomQuestion(InsertRoom raceData,int roomId)
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            for (int i = 0; i < raceData.questionId.Count; i++)
-                stringBuilder.AppendLine($@"INSERT INTO RoomQuestion (roomId, questionId) 
-                                            VALUES({roomId}, {raceData.questionId[i]}) ");
-            using var conn = new SqlConnection(cnstr);
-            conn.Execute(stringBuilder.ToString());
+            if(raceData.questionId.Count > 0){
+                StringBuilder stringBuilder = new();
+                for (int i = 0; i < raceData.questionId.Count; i++)
+                    stringBuilder.AppendLine($@"INSERT INTO RoomQuestion (roomId, questionId) 
+                                                VALUES({roomId}, {raceData.questionId[i]}) ");
+                using var conn = new SqlConnection(cnstr);
+                conn.Execute(stringBuilder.ToString());
+            }
         }
         #endregion
 
@@ -349,6 +351,16 @@ namespace BrainBoost_V2.Service
                     );
                 }
             }
+        }
+        #endregion
+        #region 檢查搶答室
+        public bool CheckRoom(string roomName,int userId){
+            string sql = $@"SELECT COUNT(*) FROM ""Room"" WHERE roomName = @roomName AND userId = @userId AND isDelete = 0 ";
+            using var conn = new SqlConnection(cnstr);
+            if(conn.QueryFirst<int>(sql,new{roomName,userId}) >= 1)
+                return true;
+            return false;
+
         }
         #endregion
     }

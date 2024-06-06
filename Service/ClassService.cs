@@ -50,10 +50,23 @@ namespace BrainBoost_V2.Service
         public List<Class> GetAllClass(int userId,string search){
             string sql;
             if(string.IsNullOrEmpty(search)){
-                sql = $@"SELECT * FROM ""Class"" WHERE userId = @userId AND isDelete = 0";
+                sql = $@"
+                    SELECT 
+                        ROW_NUMBER() OVER(ORDER BY classId) rNum,
+                        *
+                    FROM ""Class"" 
+                    WHERE userId = @userId AND isDelete = 0
+                    ORDER BY rNum DESC";
             }
             else{
-                sql = $@"SELECT * FROM ""Class"" WHERE userId = @userId AND isDelete = 0 AND className LIKE '%{search}%'";
+                sql = $@"
+                    SELECT 
+                        ROW_NUMBER() OVER(ORDER BY classId) rNum,
+                        *
+                    FROM ""Class"" 
+                    WHERE userId = @userId AND isDelete = 0 AND className LIKE '%{search}%'
+                    ORDER BY rNum DESC
+                ";
             }
             using var conn = new SqlConnection(cnstr);
             return new List<Class>(conn.Query<Class>(sql,new{userId}));
