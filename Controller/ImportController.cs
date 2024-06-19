@@ -22,19 +22,20 @@ namespace BrainBoost_V2.Controller
         #region 是非題 手動匯入
 
         [HttpPost("[Action]")]
-        public IActionResult TrueOrFalse([FromQuery] int subjectId, [FromBody] TureorFalse question)
+        public IActionResult TrueOrFalse([FromBody] TureorFalse question)
         {
             GetQuestion getQuestion = new();
             getQuestion.tagData.tagContent = question.tagContent;
             // 使用者防呆
+            if(User.Identity == null || User.Identity.Name == null ) 
+                return BadRequest(new Response{status_code = 400 , message = "請先登入"});
             int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-            if (SubjectService.GetSubject(userId, subjectId) == null)
+            if (SubjectService.GetSubject(userId, question.subjectId) == null)
                 return BadRequest(new Response
                 {
                     status_code = 400,
                     message = "您非此科目擁有者"
                 });
-            getQuestion.subjectData.subjectId = subjectId;
             // 題目敘述
             getQuestion.questionData = new Question()
             {
@@ -77,11 +78,21 @@ namespace BrainBoost_V2.Controller
         #region 選擇題 手動匯入
 
         [HttpPost("[Action]")]
-        public IActionResult MultipleChoice([FromQuery] int subjectId, [FromBody] MultipleChoice question)
+        public IActionResult MultipleChoice( [FromForm] MultipleChoice question)
         {
             GetQuestion getQuestion = new();
             getQuestion.tagData.tagContent = question.tagContent;
-            getQuestion.subjectData.subjectId = subjectId;
+            // 使用者防呆
+            if(User.Identity == null || User.Identity.Name == null ) 
+                return BadRequest(new Response{status_code = 400 , message = "請先登入"});
+            int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+            if (SubjectService.GetSubject(userId, question.subjectId) == null)
+                return BadRequest(new Response
+                {
+                    status_code = 400,
+                    message = "您非此科目擁有者"
+                });
+            // 題目敘述
             // 題目敘述
             getQuestion.questionData = new Question()
             {
@@ -91,12 +102,13 @@ namespace BrainBoost_V2.Controller
             };
 
             // 題目選項
-            getQuestion.options = new List<string>(){
-                question.optionA.ToString(),
-                question.optionB.ToString(),
-                question.optionC.ToString(),
-                question.optionD.ToString(),
-            };
+            getQuestion.options = question.options;
+            // getQuestion.options = new List<string>(){
+            //     question.optionA.ToString(),
+            //     question.optionB.ToString(),
+            //     question.optionC.ToString(),
+            //     question.optionD.ToString(),
+            // };
 
             // 題目答案
             getQuestion.answerData = new Answer()
@@ -107,6 +119,7 @@ namespace BrainBoost_V2.Controller
 
             try
             {
+                getQuestion.subjectData.subjectId = question.subjectId;
                 getQuestion.questionData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
                 QuestionService.InsertQuestion(getQuestion);
                 getQuestion.answerData.questionId = getQuestion.questionData.questionId;
@@ -137,14 +150,20 @@ namespace BrainBoost_V2.Controller
         [HttpPost("[Action]")]
         public IActionResult Excel_TrueOrFalse([FromForm]Excel_Parameter data)
         {
+            // 使用者防呆
+            if(User.Identity == null || User.Identity.Name == null ) 
+                return BadRequest(new Response{status_code = 400 , message = "請先登入"});
+            int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+            if (SubjectService.GetSubject(userId, data.subjectId) == null)
+                return BadRequest(new Response
+                {
+                    status_code = 400,
+                    message = "您非此科目擁有者"
+                });
+            // 題目敘述
             int subjectId = data.subjectId;
             List<IFormFile> files = data.files;
             List<GetQuestion> AllQuestion = [];
-            int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-            // 防呆：是否已登入
-            if (userId == null)
-                return BadRequest(new Response() { status_code = 400, message = "請先登入" });
-
             if (files != null)
             {
                 foreach (var file in files)
@@ -241,14 +260,20 @@ namespace BrainBoost_V2.Controller
         [HttpPost("[Action]")]
         public IActionResult Excel_MultipleChoice([FromForm]Excel_Parameter data)
         {
+            // 使用者防呆
+            if(User.Identity == null || User.Identity.Name == null ) 
+                return BadRequest(new Response{status_code = 400 , message = "請先登入"});
+            int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+            if (SubjectService.GetSubject(userId, data.subjectId) == null)
+                return BadRequest(new Response
+                {
+                    status_code = 400,
+                    message = "您非此科目擁有者"
+                });
+            // 題目敘述
             int subjectId = data.subjectId;
             List<IFormFile> files = data.files;
             List<GetQuestion> AllQuestion = [];
-            int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-            // 防呆：是否已登入
-            if (userId == null)
-                return BadRequest(new Response() { status_code = 400, message = "請先登入" });
-
             if (files != null)
             {
                 foreach (var file in files)

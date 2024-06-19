@@ -108,7 +108,7 @@ namespace BrainBoost_V2.Service
         //(後台管理者)
         //取得所有使用者
         public List<User> GetAllMemberList(string Search,Forpaging forpaging){
-            List<User> Data = new();
+            List<User> Data;
             //判斷是否有增加搜尋值
             if(string.IsNullOrEmpty(Search)){
                 SetMaxPage(forpaging);

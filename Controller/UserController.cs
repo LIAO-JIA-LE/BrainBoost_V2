@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace BrainBoost_V2.Controller
 {
     [Route("BrainBoost/[controller]")]
-    public class UserController(IWebHostEnvironment _evn,UserService _userService,MailService _mailservice, JwtHelpers _jwtHelpers,Forpaging _forpaging,RoleService _roleservice) : ControllerBase
+    public class UserController(IConfiguration configuration,IWebHostEnvironment _evn,UserService _userService,MailService _mailservice, JwtHelpers _jwtHelpers,Forpaging _forpaging,RoleService _roleservice) : ControllerBase
     {
         #region 呼叫函式
         readonly UserService UserService = _userService;
@@ -17,6 +17,7 @@ namespace BrainBoost_V2.Controller
         readonly Forpaging Forpaging = _forpaging;
         readonly RoleService RoleService = _roleservice;
         readonly IWebHostEnvironment evn = _evn;
+        readonly string ImageRoute = configuration.GetValue<string>("Route:ImageRoute");
 
         #endregion
 
@@ -34,7 +35,7 @@ namespace BrainBoost_V2.Controller
                         message = validatestr
                     });
                 }
-                var wwwroot = evn.ContentRootPath + @"\wwwroot\images\";
+                
                 User User = new()
                 {
                     userName = RegisterData.userName,
@@ -45,13 +46,13 @@ namespace BrainBoost_V2.Controller
                 };
                 if(RegisterData.userPhoto != null ){
                     var imgname = RegisterData.userAccount + ".jpg";
-                    var img_path = wwwroot + imgname;
+                    var img_path = ImageRoute + imgname;
                     using var stream = System.IO.File.Create(img_path);
                     RegisterData.userPhoto.CopyTo(stream);
                     User.userPhoto = img_path;
                 }
                 else{
-                    User.userPhoto = wwwroot + "default.jpg";
+                    User.userPhoto = ImageRoute + "default.jpg";
                 }
 
                 var path = Directory.GetCurrentDirectory() + "/Verificationletter/RegisterTempMail.html";
@@ -146,16 +147,15 @@ namespace BrainBoost_V2.Controller
                     userName = Data.userName
                 };
                 //處理圖片
-                var wwwroot = evn.ContentRootPath + @"\wwwroot\images\";
                 if(Data.file != null){
                     var imgname = User.Identity.Name + ".jpg";
-                    var img_path = wwwroot + imgname;
+                    var img_path = ImageRoute + imgname;
                     using var stream = System.IO.File.Create(img_path);
                     Data.file.CopyTo(stream);
                     user.userPhoto = img_path;
                 }
                 else{
-                    user.userPhoto = wwwroot + "default.jpg";
+                    user.userPhoto = ImageRoute + "default.jpg";
                 }
                 UserService.UpdateUserData(user);
                 var userData = UserService.GetDataByAccount(User.Identity.Name);
@@ -200,6 +200,11 @@ namespace BrainBoost_V2.Controller
                 if(User.Identity.Name == null) return BadRequest(new Response{status_code = 400,message = "請先登入"});
                 User data = UserService.GetDataByAccount(User.Identity.Name);
                 data.userPassword = string.Empty;
+                // 處理圖片
+                var request = HttpContext.Request;
+                var host = request.Host.Value; // 獲取主機名和端口
+                var scheme = request.Scheme; // 獲取協議（例如：http 或 https）
+                data.userPhoto =  $"{scheme}://{host}/{ImageRoute + data.userPhoto}";
                 return Ok(new Response(){
                     status_code = 200,
                     message = "讀取成功",

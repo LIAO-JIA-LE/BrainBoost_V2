@@ -7,6 +7,7 @@ namespace BrainBoost_V2.Parameter
 {
     public class TureorFalse
     {
+        public int subjectId { get; set; }
         public string questionContent {get;set;}
 
         public string tagContent{get;set;}

@@ -164,7 +164,7 @@ namespace BrainBoost_V2.Controller
         public IActionResult DeleteQuestion([FromQuery]int questionId){
             try
             {
-                if(User.Identity.Name == null ) 
+                if(User.Identity == null || User.Identity.Name == null ) 
                     return BadRequest(new Response{status_code = 400 , message = "請先登入"});
                 int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
                 if(QuestionService.DeleteQuestion(questionId,userId)==1){
