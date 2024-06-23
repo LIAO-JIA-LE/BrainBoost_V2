@@ -79,7 +79,7 @@ namespace BrainBoost_V2.Service
                                 ROW_NUMBER() OVER(ORDER BY subjectId) rNum,
                                 * 
                             FROM [Subject] s
-                            WHERE userId = 1 AND isDelete =0
+                            WHERE userId = @userId AND isDelete =0
                             ORDER BY rNum DESC
                         ";
             using var conn = new SqlConnection(cnstr);

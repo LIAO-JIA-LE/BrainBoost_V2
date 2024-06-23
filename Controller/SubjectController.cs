@@ -46,11 +46,16 @@ namespace BrainBoost_V2.Controller
         [Route("AllSubject")]
         public IActionResult GetAllSubject([FromQuery]string search){
             try{
-                if(User.Identity == null || User.Identity.Name == null) return BadRequest(new Response(){status_code = 400, message = "請先登入"});
+                if(User.Identity == null || User.Identity.Name == null) 
+                    return BadRequest(
+                        new Response(){
+                            status_code = 400,
+                            message = "請先登入"
+                        });
                 AllSubjectViewModel AllSubjectViewModel = new(){
-                                                        userId = UserService.GetDataByAccount(User.Identity.Name).userId,
-                                                        search = search
-                                                    };
+                        userId = UserService.GetDataByAccount(User.Identity.Name).userId,
+                        search = search
+                    };
                 AllSubjectViewModel.subjectList = SubjectService.GetAllSubject(AllSubjectViewModel);
                 if(AllSubjectViewModel.subjectList.Count > 0){
                     return Ok(new Response(){
