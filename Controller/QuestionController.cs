@@ -49,27 +49,27 @@ namespace BrainBoost_V2.Controller
         }
 
         // 獲得全部問題
-        [HttpGet]
-        [Route("AllQuestion")]
-        public IActionResult AllQuestion([FromQuery]string search,[FromQuery]searchQuestion searchQuestion,[FromQuery]int type = 0,[FromQuery]int page = 1){
-            AllQuestionViewModel data = new(){
-                forpaging = new Forpaging(page),
-                search = search
-            };
-            int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-            data.question = QuestionService.GetQuestionList(userId,type,data.search,data.forpaging);
-            if(data.question.Count==0){
-                return Ok(new Response(){
-                    status_code = 204,
-                    message = "無資料，請新增題目"
-                });
-            }
-            return Ok(new Response(){
-                status_code = 200,
-                message = "讀取成功",
-                data = data
-            });
-        }
+        // [HttpGet]
+        // [Route("AllQuestion")]
+        // public IActionResult AllQuestion([FromQuery]string search,[FromQuery]searchQuestion searchQuestion,[FromQuery]int type = 0,[FromQuery]int page = 1){
+        //     AllQuestionViewModel data = new(){
+        //         forpaging = new Forpaging(page),
+        //         search = search
+        //     };
+        //     int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+        //     data.question = QuestionService.GetQuestionList(userId,type,data.search,data.forpaging);
+        //     if(data.question.Count==0){
+        //         return Ok(new Response(){
+        //             status_code = 204,
+        //             message = "無資料，請新增題目"
+        //         });
+        //     }
+        //     return Ok(new Response(){
+        //         status_code = 200,
+        //         message = "讀取成功",
+        //         data = data
+        //     });
+        // }
 
         //新增搶答室的題庫列表
         public class searchQuestion{
@@ -85,11 +85,11 @@ namespace BrainBoost_V2.Controller
         public IActionResult QuestionList([FromQuery]searchQuestion searchQuestion){
             try
             {
-                if(User.Identity.Name == null) return BadRequest(new Response{status_code = 400, message = "請先登入"});
+                if(User.Identity == null || User.Identity.Name == null) return BadRequest(new Response{status_code = 400, message = "請先登入"});
                 if(searchQuestion == null)  return BadRequest(new Response{status_code = 400, message = "請輸入篩選內容"});
                 searchQuestion.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
                 List<Question> questionList = QuestionService.GetQuestionList(searchQuestion);
-                if(questionList == null) return Ok(new Response{status_code = 204, message = "查無資料", data = questionList});
+                if(questionList == null) return Ok(new Response{status_code = 204, message = "查無資料"});
                 return Ok(new Response{status_code = 200, message = "讀取成功", data = questionList});
             }
             catch (Exception e)

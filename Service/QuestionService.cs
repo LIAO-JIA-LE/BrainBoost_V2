@@ -54,10 +54,10 @@ namespace BrainBoost_V2.Service
             // 看有沒有Tag的資訊
             if(!String.IsNullOrEmpty(getQuestion.tagData.tagContent)){
                 // 獲得沒有重複的Tag
-                if(String.IsNullOrEmpty(NotRepeatQuestionTag(getQuestion.questionData.userId, getQuestion.tagData.tagContent)))
+                if(String.IsNullOrEmpty(NotRepeatQuestionTag(getQuestion.questionData.userId, getQuestion.subjectData.subjectId , getQuestion.tagData.tagContent)))
                     InsertTag(getQuestion.subjectData.subjectId, getQuestion.tagData.tagContent);
                 
-                getQuestion.tagData.tagId = GetTagId(getQuestion.tagData.tagContent);
+                getQuestion.tagData.tagId = GetTagId(getQuestion.subjectData.subjectId,getQuestion.tagData.tagContent);
                 stringBuilder.Append($@" INSERT INTO TagQuestion (tagId, questionId) VALUES ('{getQuestion.tagData.tagId}', '{questionId}') ");
             }
             
@@ -86,20 +86,26 @@ namespace BrainBoost_V2.Service
             getQuestion.answerData.answerId = conn.Execute(stringBuilder.ToString());
         }
 
-        public string NotRepeatQuestionTag(int userId, string tagContent){
+        public string NotRepeatQuestionTag(int userId,int subjectId, string tagContent){
             string sql = $@"SELECT
                                 T.tagContent
                             FROM ""Subject"" S
                             INNER JOIN SubjectTag ST ON S.subjectId = ST.subjectId
                             INNER JOIN Tag T ON ST.tagId = T.tagId
-                            WHERE S.userId = @userId AND T.tagContent = @tagContent ";
+                            WHERE S.userId = @userId AND T.tagContent = @tagContent AND ST.subjectId = @subjectId";
             using var conn = new SqlConnection(cnstr);
-            return conn.QueryFirstOrDefault<string>(sql, new{userId, tagContent});
+            return conn.QueryFirstOrDefault<string>(sql, new{ userId, subjectId, tagContent });
         }
-        public int GetTagId(string tagContent){
-            string sql = $@" SELECT tagId From Tag WHERE tagContent = @tagContent ";
+        public int GetTagId(int subjectId,string tagContent){
+            string sql = $@"    
+                                SELECT 
+                                    t.tagId 
+                                FROM Tag t
+                                JOIN [SubjectTag] st ON t.tagId = st.tagId
+                                WHERE subjectId = @subjectId AND t.tagContent = @tagContent 
+                            ";
             using var conn = new SqlConnection(cnstr);
-            return conn.QueryFirstOrDefault<int>(sql, new{tagContent});
+            return conn.QueryFirstOrDefault<int>(sql, new{ subjectId, tagContent });
         }
         public void InsertTag(int subjectId, string tagContent){
             string sql = $@"INSERT Tag(tagContent) VALUES( @tagContent )
@@ -110,7 +116,7 @@ namespace BrainBoost_V2.Service
             // int tagId = conn.QueryFirstOrDefault<int>(sql, new{tagContent});
 
             sql += $@"INSERT SubjectTag(subjectId, tagId) VALUES(@subjectId, @tagId)";
-            conn.Execute(sql, new{ subjectId,tagContent});
+            conn.Execute(sql, new{ subjectId, tagContent});
         }
 
         #endregion
@@ -124,7 +130,7 @@ namespace BrainBoost_V2.Service
                             JOIN Tag T ON TQ.tagId = T.tagId
                             JOIN SubjectTag ST ON ST.tagId = T.tagId
                             JOIN [Subject] S ON S.subjectId = ST.subjectId
-                            WHERE Q.userId = @userId AND Q.isDelete = 0 AND 1=1
+                            WHERE Q.userId = @userId AND Q.isDelete = 0 AND S.isDelete = 0 AND 1=1
                             ORDER BY Q.typeId,S.subjectContent,T.tagContent,Q.questionLevel
                         ";
             if(searchQuestion.subjectId != 0 && searchQuestion.subjectId != null)

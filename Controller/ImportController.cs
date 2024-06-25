@@ -54,6 +54,7 @@ namespace BrainBoost_V2.Controller
             try
             {
                 getQuestion.questionData.userId = UserService.GetDataByAccount(User.Identity.Name).userId;
+                getQuestion.subjectData.subjectId = question.subjectId;
                 QuestionService.InsertQuestion(getQuestion);
                 getQuestion.answerData.questionId = getQuestion.questionData.questionId;
             }

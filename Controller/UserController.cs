@@ -52,7 +52,7 @@ namespace BrainBoost_V2.Controller
                     User.userPhoto = img_path;
                 }
                 else{
-                    User.userPhoto = ImageRoute + "default.jpg";
+                    User.userPhoto = "default.jpg";
                 }
 
                 var path = Directory.GetCurrentDirectory() + "/Verificationletter/RegisterTempMail.html";
@@ -193,6 +193,7 @@ namespace BrainBoost_V2.Controller
                 data = data
             });
         }
+        #region 查看個人資訊
         [HttpGet]
         [Route("MySelf")]
         public IActionResult MySelf(){
@@ -218,6 +219,7 @@ namespace BrainBoost_V2.Controller
                 });
             }
         }
+        #endregion
         // 取得單一使用者(帳號)
         // 未來可加任課科目&上課科目
         // [HttpGet]
