@@ -9,13 +9,14 @@ namespace BrainBoost_V2.Controller
 {
     [Route("BrainBoost/[controller]")]
     [ApiController]
-    public class ImportController(QuestionService _questionService, UserService _userService, SubjectService _subjectService) : ControllerBase
+    public class ImportController(IConfiguration configuration,QuestionService _questionService, UserService _userService, SubjectService _subjectService) : ControllerBase
     {
         #region 呼叫函式
 
         readonly SubjectService SubjectService = _subjectService;
         readonly QuestionService QuestionService = _questionService;
         readonly UserService UserService = _userService;
+        readonly string ImageRoute = configuration.GetValue<string>("Route:ImageRoute");
 
         #endregion
 
@@ -79,7 +80,7 @@ namespace BrainBoost_V2.Controller
         #region 選擇題 手動匯入
 
         [HttpPost("[Action]")]
-        public IActionResult MultipleChoice( [FromForm] MultipleChoice question)
+        public IActionResult MultipleChoice([FromForm] MultipleChoice question)
         {
             GetQuestion getQuestion = new();
             getQuestion.tagData.tagContent = question.tagContent;
@@ -93,7 +94,7 @@ namespace BrainBoost_V2.Controller
                     status_code = 400,
                     message = "您非此科目擁有者"
                 });
-            // 題目敘述
+            
             // 題目敘述
             getQuestion.questionData = new Question()
             {
@@ -102,14 +103,45 @@ namespace BrainBoost_V2.Controller
                 questionContent = question.questionContent
             };
 
+            if(question.questionFile != null){
+                var newFolderPath = Path.Combine(ImageRoute, "Question");
+                if (!Directory.Exists(newFolderPath))
+                {
+                    Directory.CreateDirectory(newFolderPath);
+                }
+                var imgname = question.questionContent + ".jpg";
+                var img_path = Path.Combine(newFolderPath, imgname);
+                using var stream = System.IO.File.Create(img_path);
+                question.questionFile.CopyTo(stream);
+                getQuestion.questionData.questionPicture = img_path;
+            }
+            
+
             // 題目選項
             getQuestion.options = question.options;
-            // getQuestion.options = new List<string>(){
-            //     question.optionA.ToString(),
-            //     question.optionB.ToString(),
-            //     question.optionC.ToString(),
-            //     question.optionD.ToString(),
-            // };
+
+            if(question.optionsFile != null){
+                List<string> imagePaths = new List<string>();
+                var newFolderPath = Path.Combine(ImageRoute, "Option");
+                if (!Directory.Exists(newFolderPath))
+                {
+                    Directory.CreateDirectory(newFolderPath);
+                }
+                for(int i = 0; i < question.optionsFile.Count; i++)
+                {
+                    var file = question.optionsFile[i];
+                    var imgname = question.questionContent + ".jpg";
+                    var img_path = Path.Combine(newFolderPath, imgname + "_" + question.options[i]);
+
+                    using (var stream = new FileStream(img_path, FileMode.Create))
+                    {
+                        file.CopyTo(stream);
+                    }
+
+                    imagePaths.Add(img_path);
+                }
+                getQuestion.optionsPicture = imagePaths;
+            }
 
             // 題目答案
             getQuestion.answerData = new Answer()

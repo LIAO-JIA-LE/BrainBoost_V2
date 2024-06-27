@@ -67,10 +67,10 @@ namespace BrainBoost_V2.Service
                 for(int i = 0; i < 4; i++)
                 {
                     //新增判斷是否為答案
-                    // stringBuilder.Append($@"INSERT INTO ""Option""(questionId, optionContent, optionPicture, isAnswer)   
-                    //                         VALUES('{questionId}', '{getQuestion.options[i]}', '{getQuestion.optionImg[i]}','{getQuestion.options[i] == getQuestion.answerData.answerContent}')");
-                    stringBuilder.Append($@"INSERT INTO ""Option""(questionId, optionContent, isAnswer)   
-                                            VALUES('{questionId}', '{getQuestion.options[i]}','{getQuestion.options[i] == getQuestion.answerData.answerContent}')");
+                    stringBuilder.Append($@"INSERT INTO ""Option""(questionId, optionContent, optionPicture, isAnswer)   
+                                            VALUES('{questionId}', '{getQuestion.options[i]}', '{getQuestion.optionsPicture[i]}','{getQuestion.options[i] == getQuestion.answerData.answerContent}')");
+                    // stringBuilder.Append($@"INSERT INTO ""Option""(questionId, optionContent, isAnswer)   
+                    //                         VALUES('{questionId}', '{getQuestion.options[i]}','{getQuestion.options[i] == getQuestion.answerData.answerContent}')");
                 }
             }
             
