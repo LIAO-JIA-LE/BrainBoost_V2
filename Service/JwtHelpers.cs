@@ -12,30 +12,43 @@ public class JwtHelpers
     {
         this.Configuration = configuration;
     }
-    public string GenerateGuestToken(string guestId,string roomPinCode, int expireHours = 5)
-    {
-        var signKey = Configuration.GetValue<string>("JwtSettings:GuestSignKey");
+    // public string GenerateGuestToken(string guestId, string roomPinCode, string guestName, int expireHours = 5)
+    // {
+    //     var signKey = Configuration.GetValue<string>("JwtSettings:GuestSignKey");
 
-        // Create a SymmetricSecurityKey for JWT Token signatures
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signKey));
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(new Claim[]
-            {
-                new("guestId", guestId),
-                new("roomPinCode",roomPinCode)
-            }),
-            Expires = DateTime.UtcNow.AddHours(expireHours),
-            SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
-        };
+    //     if (string.IsNullOrEmpty(signKey))
+    //     {
+    //         throw new ArgumentNullException(nameof(signKey), "GuestSignKey cannot be null or empty.");
+    //     }
 
-        // Generate a JWT securityToken, than get the serialized Token result (string)
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var securityToken = tokenHandler.CreateToken(tokenDescriptor);
-        var serializeToken = tokenHandler.WriteToken(securityToken);
+    //     var claims = new List<Claim>
+    //     {
+    //         new Claim("guestId", guestId),
+    //         new Claim("roomPinCode", roomPinCode),
+    //         new Claim(JwtRegisteredClaimNames.Sub, guestName),
+    //         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    //     };
 
-        return serializeToken;
-    }
+    //     var guestClaimsIdentity = new ClaimsIdentity(claims);
+
+    //     var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signKey));
+    //     var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
+
+    //     var tokenDescriptor = new SecurityTokenDescriptor
+    //     {
+    //         Subject = guestClaimsIdentity,
+    //         Expires = DateTime.UtcNow.AddHours(expireHours),
+    //         SigningCredentials = signingCredentials
+    //     };
+
+    //     var tokenHandler = new JwtSecurityTokenHandler();
+    //     var securityToken = tokenHandler.CreateToken(tokenDescriptor);
+    //     var serializedToken = tokenHandler.WriteToken(securityToken);
+
+    //     return serializedToken;
+    // }
+
+
     public string GenerateToken(string userName,int Role, int expireHours = 5)
     {
         var issuer = Configuration.GetValue<string>("JwtSettings:Issuer");
@@ -67,9 +80,11 @@ public class JwtHelpers
             claims.Add(new Claim(ClaimTypes.Role, "Teacher"));
         else if(Role == 3)
             claims.Add(new Claim(ClaimTypes.Role, "Manager"));
-        else if(Role >= 4)
+        else if(Role == 4)
             claims.Add(new Claim(ClaimTypes.Role, "ForgetPassword"));
-        else
+        else if(Role == 5)
+            claims.Add(new Claim(ClaimTypes.Role, "Guest"));
+        else if(Role == 6)
             claims.Add(new Claim(ClaimTypes.Role, "Admin"));
 
         var userClaimsIdentity = new ClaimsIdentity(claims);

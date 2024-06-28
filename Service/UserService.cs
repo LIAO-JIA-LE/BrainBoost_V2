@@ -206,6 +206,17 @@ namespace BrainBoost_V2.Service
             using (var conn = new SqlConnection(cnstr))
             return conn.QueryFirstOrDefault<User>(sql, new{ account });
         }
+        // 用account獲得資料
+        public Guest GetDataByGuestName(string name){
+            string sql = $@"SELECT 
+                                g.*
+                            FROM Guest g
+                            JOIN UserRole ur
+                            ON g.guestId = ur.userId
+                            WHERE g.guestName = @name";
+            using (var conn = new SqlConnection(cnstr))
+            return conn.QueryFirstOrDefault<Guest>(sql, new{ name });
+        }
         #endregion
 
         #region 修改密碼

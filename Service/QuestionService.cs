@@ -415,5 +415,55 @@ namespace BrainBoost_V2.Service
             return dataTable;
         }
         #endregion
+
+        #region 取得題目答案
+        public string GetQuestionAnswerByQId(int questionId){
+            string sql = $@"SELECT
+                                answerContent
+                            FROM Answer
+                            WHERE questionId = @questionId";
+            using var conn = new SqlConnection(cnstr);
+            return conn.QueryFirstOrDefault<string>(sql, new{questionId});
+        }
+        #endregion
+
+        #region 獲得Level
+        public int GetQuestionLevel(int questionId){
+            string sql = $@"SELECT
+                                questionLevel
+                            FROM Question
+                            WHERE questionId = @questionId";
+            using var conn = new SqlConnection(cnstr);
+            return conn.QueryFirstOrDefault<int>(sql, new{questionId});
+        }
+        #endregion
+
+        #region 取得題目答案
+        public List<string> GetOptionByQId(int questionId){
+            string sql = $@"SELECT
+                                optionContent
+                            FROM ""Option""
+                            WHERE questionId = @questionId";
+            using var conn = new SqlConnection(cnstr);
+            List<string> option = new List<string>(conn.Query<string>(sql,new{questionId}));
+
+            int typeId = GetQuestionType(questionId);
+            // 是非題
+            if(typeId == 1)
+                option = ["是", "否"];
+            return option;
+        }
+        #endregion
+
+        #region 取得題目類型
+        public int GetQuestionType(int questionId){
+            string sql = $@"SELECT
+                                typeId
+                            FROM Question
+                            WHERE questionId = @questionId";
+            using var conn = new SqlConnection(cnstr);
+            return conn.QueryFirstOrDefault<int>(sql, new{questionId});
+        }
+        #endregion
     }
 }
