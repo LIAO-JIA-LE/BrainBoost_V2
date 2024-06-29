@@ -8,24 +8,18 @@ namespace BrainBoost_V2.Parameter
     public class MultipleChoice
     {
         public int subjectId { get; set; }
-        public string questionContent {get;set;}
-
         public int questionLevel {get;set;}
-
-        // public IFormFile? photo{get;set;}
-
-        // public string optionA {get;set;}
-
-        // public string optionB {get;set;}
-
-        // public string optionC {get;set;}
-
-        // public string optionD {get;set;}
-
-        public List<string> options {get;set;}
-
         public string tagContent{get;set;}
 
+        // 題目
+        public string questionContent {get;set;}
+        public IFormFile? questionFile{ get; set; }
+
+        // 選項
+        public List<string> options {get;set;}
+        public List<IFormFile>? optionsFile{ get; set; }
+
+        // 答案
         public string answerContent{get;set;}
 
         public string? parse{get;set;}

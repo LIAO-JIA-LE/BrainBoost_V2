@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Back.Parameter;
 using BrainBoost_V2.Models;
 using BrainBoost_V2.Parameter;
 using BrainBoost_V2.Service;
@@ -17,27 +18,34 @@ namespace BrainBoost_V2.Controller
         readonly GuestService GuestService = _guestService;
         readonly RoomService RoomService = _roomService;
         readonly JwtHelpers JwtHelpers = _jwtHelpers;
+
+        #region 訪客進入搶答室
         [HttpPost]
-        public IActionResult GuestLogin(GuestLogin guestData){
+        [Route("[Action]")]
+        public IActionResult GuestLogin([FromForm]GuestLogin guestData){
             try
             {
-                if(GuestService.PinCodeCheck(guestData.roomPinCode) > 0){
+                if(GuestService.PinCodeCheck(guestData.roomPinCode)){
                     Guest guest = new(){
                         guestName = guestData.guestName,
-                        classId = RoomService.GetClassByPinCode(guestData.roomPinCode),
+                        roomId = RoomService.GetRoomIdByPinCode(guestData.roomPinCode),
                     };
+                    // 訪客新增
                     guest = GuestService.InsertGuest(guest);
-                    var guestJWT = JwtHelpers.GenerateGuestToken(guest.classId.ToString(),guestData.roomPinCode);
+                    var guestJWT = JwtHelpers.GenerateToken(guestData.guestName, 5);
                     return Ok(new Response(){
                         status_code = 200,
-                        message = "登入成功",
+                        message = "進入成功",
                         data = guestJWT
                     });
                 }
                 else
-                    return BadRequest(new Response(){status_code = 400,message = "該搶答室不存在"});
+                    return BadRequest(new Response(){
+                        status_code = 400,
+                        message = "進入失敗，請重新輸入邀請碼！"
+                    });
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 return BadRequest(new Response(){
                     status_code = 400,
@@ -45,5 +53,36 @@ namespace BrainBoost_V2.Controller
                 });
             }
         }
+        #endregion
+
+        #region 顯示進入搶答室的訪客列表
+        [HttpGet]
+        [Route("[Action]")]
+        public IActionResult GetGuestList([FromQuery]int roomId){
+            try{
+                GuestList guestList = new(){
+                    roomId = roomId,
+                    guestNameList = GuestService.GetGuestListByRoomId(roomId),
+                    guestCount = GuestService.GetGuestCountByRoomId(roomId)
+                };
+                return Ok(new Response(){
+                    status_code = 200,
+                    message = "獲取成功",
+                    data = guestList
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response(){
+                    status_code = 400,
+                    message = e.Message
+                });
+            }
+        }
+        #endregion
+
+        #region 訪客回應
+
+        #endregion
     }
 }

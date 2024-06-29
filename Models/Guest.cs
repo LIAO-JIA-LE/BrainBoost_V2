@@ -4,6 +4,9 @@ namespace BrainBoost_V2.Models{
 
         public string guestName{get;set;}
 
-        public int classId{get;set;}
+        public int roomId{get;set;}
+
+        public bool isJoined{get;set;}
+        public DateTime visitTime{get;set;}
     }
 }

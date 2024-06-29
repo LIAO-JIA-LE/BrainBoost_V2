@@ -12,6 +12,7 @@ public class JwtHelpers
     {
         this.Configuration = configuration;
     }
+<<<<<<< HEAD
     public string GenerateGuestToken(string guestId,string roomPinCode, int expireHours = 5)
     {
         var signKey = Configuration.GetValue<string>("JwtSettings:UserSignKey");
@@ -28,14 +29,45 @@ public class JwtHelpers
             Expires = DateTime.UtcNow.AddHours(expireHours),
             SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
         };
+=======
+    // public string GenerateGuestToken(string guestId, string roomPinCode, string guestName, int expireHours = 5)
+    // {
+    //     var signKey = Configuration.GetValue<string>("JwtSettings:GuestSignKey");
 
-        // Generate a JWT securityToken, than get the serialized Token result (string)
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var securityToken = tokenHandler.CreateToken(tokenDescriptor);
-        var serializeToken = tokenHandler.WriteToken(securityToken);
+    //     if (string.IsNullOrEmpty(signKey))
+    //     {
+    //         throw new ArgumentNullException(nameof(signKey), "GuestSignKey cannot be null or empty.");
+    //     }
 
-        return serializeToken;
-    }
+    //     var claims = new List<Claim>
+    //     {
+    //         new Claim("guestId", guestId),
+    //         new Claim("roomPinCode", roomPinCode),
+    //         new Claim(JwtRegisteredClaimNames.Sub, guestName),
+    //         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    //     };
+
+    //     var guestClaimsIdentity = new ClaimsIdentity(claims);
+
+    //     var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signKey));
+    //     var signingCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
+
+    //     var tokenDescriptor = new SecurityTokenDescriptor
+    //     {
+    //         Subject = guestClaimsIdentity,
+    //         Expires = DateTime.UtcNow.AddHours(expireHours),
+    //         SigningCredentials = signingCredentials
+    //     };
+
+    //     var tokenHandler = new JwtSecurityTokenHandler();
+    //     var securityToken = tokenHandler.CreateToken(tokenDescriptor);
+    //     var serializedToken = tokenHandler.WriteToken(securityToken);
+
+    //     return serializedToken;
+    // }
+>>>>>>> e9c71b0ec1fd711b3f36d476118c3f51afd7bdfd
+
+
     public string GenerateToken(string userName,int Role, int expireHours = 5)
     {
         var issuer = Configuration.GetValue<string>("JwtSettings:Issuer");

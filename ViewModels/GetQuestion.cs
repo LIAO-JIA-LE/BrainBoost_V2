@@ -12,6 +12,7 @@ namespace BrainBoost_V2.ViewModels
         public Subject subjectData{get;set;} = new();
         
         public List<string> options { get; set; }
+        public List<string> optionsPicture { get; set; }
 
         public List<string>? optionImg { get; set; }
 

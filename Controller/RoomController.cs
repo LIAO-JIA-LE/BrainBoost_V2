@@ -4,14 +4,17 @@ using BrainBoost_V2.Parameter;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using BrainBoost_V2.ViewModels;
+using Back.ViewModels;
+using BrainBoost.ViewModels;
 
 namespace BrainBoost_V2.Controller
 {
     [Route("BrainBoost/[controller]")]
-    public class RoomController(UserService _userService,RoomService _roomService) : ControllerBase
+    public class RoomController(UserService _userService,RoomService _roomService,QuestionService _questionService) : ControllerBase
     {
         readonly UserService UserService = _userService;
         readonly RoomService RoomService = _roomService;
+        readonly QuestionService QuestionService = _questionService;
 
         #region 新增搶答室
         // 新增搶答室
@@ -140,7 +143,7 @@ namespace BrainBoost_V2.Controller
                         message = "請先登入"
                     });
                 int userId = UserService.GetDataByAccount(User.Identity.Name).userId;
-                RoomQuestionViewModel roomQuestionList = new()
+                RoomQuestionListViewModel roomQuestionList = new()
                 {
                     room = RoomService.GetRoom(roomId, userId),
                     questionList = RoomService.RoomQuestionList(roomId, userId)
@@ -255,6 +258,164 @@ namespace BrainBoost_V2.Controller
             catch (Exception e){
                 return BadRequest(new Response{
                     status_code = 400 ,
+                    message = e.Message
+                });
+            }
+        }
+        #endregion
+
+        #region 隨機出題
+        [HttpGet("[Action]")]
+        public IActionResult RandomQuestion([FromQuery]int roomId){
+            try{
+                var Response = RoomService.RandomQuestion(roomId);
+                return Ok(new Response{
+                    status_code = 200,
+                    message = "顯示成功",
+                    data = Response
+                });
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response{
+                        status_code = 400,
+                        message = e.Message
+                    });
+            }
+        }
+        #endregion
+
+        #region 紀錄學生搶答室答案和分數
+        [HttpPost]
+        [Route("[Action]")]
+        public IActionResult StudentResponse([FromBody]StudentResponse studentResponse){
+            try{
+                if(User.Identity.Name != null){
+                    // 取得guestId
+                    studentResponse.guestId = UserService.GetDataByGuestName(User.Identity.Name).guestId;
+                    // 取得搶答室限時
+                    studentResponse.timeLimit = RoomService.GetTimeLimitByRId(studentResponse.roomId);
+                    // 取得此題目的答案
+                    string Answer = QuestionService.GetQuestionAnswerByQId(studentResponse.questionId);
+                    // 取得此題目的難度
+                    int Level = QuestionService.GetQuestionLevel(studentResponse.questionId);
+                    // 計分
+                    if(studentResponse.timeCose < 3.0)
+                        studentResponse.score = (decimal)Math.Round(studentResponse.timeLimit * Level, 1, MidpointRounding.AwayFromZero);
+                    else
+                        studentResponse.score = (decimal)Math.Round(studentResponse.timeLimit * Level);
+
+                    RoomService.StorageTimers(Level, Answer, studentResponse);
+
+                    return Ok(new Response{
+                        status_code = 200,
+                        message = "匯入成功",
+                        data = studentResponse
+                    });
+                }
+                else{
+                    return BadRequest(new Response{
+                        status_code = 400,
+                        message = "沒有name"
+                    });
+                }
+                
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response{
+                        status_code = 400,
+                        message = e.Message
+                    });
+            }
+        }
+        #endregion
+
+        #region 統整學生作答答案
+        [HttpGet]
+        [Route("[Action]")]
+        public IActionResult StaticReseponse([FromQuery]int roomId, [FromQuery]int questionId){
+            try{
+                // 獲得選項
+                List<string> option_content = QuestionService.GetOptionByQId(questionId);
+                var Response = RoomService.GetStudentReseponse(roomId, questionId, option_content);
+                if(Response != null){
+                    return Ok(new Response{
+                        status_code = 200,
+                        message = "顯示成功",
+                        data = Response
+                    });
+                }
+                else{
+                    return Ok(new Response{
+                        status_code = 200,
+                        message = "尚無資料"
+                    });
+                }
+            }
+            catch(Exception e){
+                return BadRequest(new Response{
+                    status_code = 400,
+                    message = e.Message
+                });
+            }
+        }
+        #endregion
+
+        #region 記分板
+        [HttpGet]
+        [Route("[Action]")]
+        public IActionResult ScoreBoard([FromQuery]int roomId){
+            try{
+                var Response = RoomService.GetScoreBoard(roomId);
+                if(Response != null){
+                    return Ok(new Response{
+                        status_code = 200,
+                        message = "顯示成功",
+                        data = Response
+                    });
+                }
+                else{
+                    return Ok(new Response{
+                        status_code = 200,
+                        message = "尚無資料"
+                    });
+                }
+            }
+            catch(Exception e){
+                return BadRequest(new Response{
+                    status_code = 400,
+                    message = e.Message
+                });
+            }
+        }
+        #endregion
+
+        #region 記分板
+        [HttpGet]
+        [Route("[Action]")]
+        public IActionResult ScoreByGuest([FromQuery]int roomId){
+            try{
+                if(User.Identity != null){
+                    int guestId = UserService.GetDataByGuestName(User.Identity.Name).guestId;
+                    var Response = RoomService.GetScoreByGuest(roomId, guestId);
+
+                    return Ok(new Response{
+                        status_code = 200,
+                        message = "顯示成功",
+                        data = Response
+                    });
+                }
+                else{
+                    return BadRequest(new Response{
+                        status_code = 400,
+                        message = "未進入搶答室"
+                    });
+                }
+            }
+            catch(Exception e){
+                return BadRequest(new Response{
+                    status_code = 400,
                     message = e.Message
                 });
             }

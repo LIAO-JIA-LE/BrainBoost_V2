@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using BrainBoost_V2.Models;
 
-namespace BrainBoost_V2.ViewModels
+namespace BrainBoost.ViewModels
 {
-    public class RoomQuestionViewModel
+    public class GetQuestionViewModel
     {
         public Question question{get;set;}
         public List<Option> options{get;set;}
