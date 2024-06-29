@@ -14,17 +14,17 @@ public class JwtHelpers
     }
     public string GenerateGuestToken(string guestId,string roomPinCode, int expireHours = 5)
     {
-        var signKey = Configuration.GetValue<string>("JwtSettings:GuestSignKey");
+        var signKey = Configuration.GetValue<string>("JwtSettings:UserSignKey");
 
         // Create a SymmetricSecurityKey for JWT Token signatures
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signKey));
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new Claim[]
-            {
+            Subject = new ClaimsIdentity(
+            [
                 new("guestId", guestId),
-                new("roomPinCode",roomPinCode)
-            }),
+                new("roomId",roomPinCode)
+            ]),
             Expires = DateTime.UtcNow.AddHours(expireHours),
             SigningCredentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature)
         };
@@ -67,9 +67,11 @@ public class JwtHelpers
             claims.Add(new Claim(ClaimTypes.Role, "Teacher"));
         else if(Role == 3)
             claims.Add(new Claim(ClaimTypes.Role, "Manager"));
-        else if(Role >= 4)
+        else if(Role == 4)
             claims.Add(new Claim(ClaimTypes.Role, "ForgetPassword"));
-        else
+        else if(Role == 5)
+            claims.Add(new Claim(ClaimTypes.Role, "Guest"));
+        else if(Role == 6)
             claims.Add(new Claim(ClaimTypes.Role, "Admin"));
 
         var userClaimsIdentity = new ClaimsIdentity(claims);
