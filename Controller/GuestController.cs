@@ -31,8 +31,14 @@ namespace BrainBoost_V2.Controller
                         roomId = RoomService.GetRoomIdByPinCode(guestData.roomPinCode),
                     };
                     // 訪客新增
+                    if(guest.roomId == 0){
+                        return BadRequest(new Response{
+                            status_code = 400,
+                            message = "無此房間"
+                        });
+                    }
                     guest = GuestService.InsertGuest(guest);
-                    var guestJWT = JwtHelpers.GenerateToken(guestData.guestName, 5);
+                    var guestJWT = JwtHelpers.GenerateToken(guestData.guestName, 5, guestData.roomPinCode);
                     return Ok(new Response(){
                         status_code = 200,
                         message = "進入成功",
@@ -48,6 +54,35 @@ namespace BrainBoost_V2.Controller
             catch (Exception e)
             {
                 return BadRequest(new Response(){
+                    status_code = 400,
+                    message = e.Message
+                });
+            }
+        }
+
+        [HttpGet]
+        [Route("CheckPinCode")]
+        public IActionResult CheckRoomPinCode(string roomPinCode){
+            try
+            {
+                Room room = RoomService.CheckRoomPinCode(roomPinCode);
+                if(room != null){
+                    return Ok(new Response{
+                        status_code = 200,
+                        message = "讀取成功",
+                        data = room
+                    });
+                }
+                else{
+                    return BadRequest(new Response{
+                        status_code = 400,
+                        message = "查無此房"
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                return BadRequest(new Response{
                     status_code = 400,
                     message = e.Message
                 });

@@ -83,6 +83,13 @@ namespace BrainBoost_V2.Service
             using var conn = new SqlConnection(cnstr);
             return conn.QueryFirstOrDefault<int>(sql,new{pinCode});
         }
+        public Room CheckRoomPinCode(string roomPinCode){
+            string sql = $@"
+                            SELECT * FROM Room WHERE roomPinCode = @RoomPinCode
+                        ";
+            using var conn = new SqlConnection(cnstr);
+            return conn.QueryFirstOrDefault<Room>(sql,new{roomPinCode});
+        }
         #endregion
 
     #region 顯示搶答室

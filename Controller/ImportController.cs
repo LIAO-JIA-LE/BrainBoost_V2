@@ -23,7 +23,7 @@ namespace BrainBoost_V2.Controller
         #region 是非題 手動匯入
 
         [HttpPost("[Action]")]
-        public IActionResult TrueOrFalse([FromBody] TureorFalse question)
+        public IActionResult TrueOrFalse([FromForm] TureorFalse question)
         {
             GetQuestion getQuestion = new();
             getQuestion.tagData.tagContent = question.tagContent;
